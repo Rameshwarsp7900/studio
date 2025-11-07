@@ -1,3 +1,82 @@
 {
-  "placeholderImages": []
+  "placeholderImages": [
+    {
+      "id": "hero-section",
+      "description": "Two people collaborating over a laptop in a bright, modern office space.",
+      "imageUrl": "https://images.unsplash.com/photo-1567762755523-74cefdb5e25f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxjb2xsYWJvcmF0aW9uJTIwbGVhcm5pbmd8ZW58MHx8fHwxNzYyNDk3MjgwfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "collaboration learning"
+    },
+    {
+      "id": "user-1",
+      "description": "Portrait of a friendly-looking woman with glasses.",
+      "imageUrl": "https://images.unsplash.com/photo-1580489944761-15a19d654956?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHx3b21hbiUyMHBvcnRyYWl0fGVufDB8fHx8MTc2MjQ1ODcyOXww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "woman portrait"
+    },
+    {
+      "id": "user-2",
+      "description": "Portrait of a man with a beard, smiling.",
+      "imageUrl": "https://images.unsplash.com/photo-1560250097-0b93528c311a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxtYW4lMjBwb3J0cmFpdHxlbnwwfHx8fDE3NjI0MTg2MjZ8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "man portrait"
+    },
+    {
+      "id": "user-3",
+      "description": "A person focused on painting on a canvas.",
+      "imageUrl": "https://images.unsplash.com/photo-1605721911519-3dfeb3be25e7?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxhcnRpc3QlMjBwYWludGluZ3xlbnwwfHx8fDE3NjI0OTg4MDl8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "artist painting"
+    },
+    {
+      "id": "user-4",
+      "description": "A chef garnishing a dish in a kitchen.",
+      "imageUrl": "https://images.unsplash.com/photo-1681270496598-13c5365730c8?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxjaGVmJTIwY29va2luZ3xlbnwwfHx8fDE3NjI0OTQzMTl8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "chef cooking"
+    },
+    {
+      "id": "user-5",
+      "description": "A developer coding on a laptop with multiple monitors.",
+      "imageUrl": "https://images.unsplash.com/photo-1576936422505-18d321d54d40?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxkZXZlbG9wZXIlMjBjb2Rpbmd8ZW58MHx8fHwxNzYyNTE3NDM4fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "developer coding"
+    },
+    {
+      "id": "user-6",
+      "description": "A person playing a guitar.",
+      "imageUrl": "https://images.unsplash.com/photo-1741877011950-9a1bfc880fc4?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxwZXJzb24lMjBndWl0YXJ8ZW58MHx8fHwxNzYyNDUwMDEzfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "person guitar"
+    },
+    {
+      "id": "user-7",
+      "description": "A woman doing a yoga pose in a park.",
+      "imageUrl": "https://images.unsplash.com/photo-1617391484407-e58218dee463?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHx3b21hbiUyMHlvZ2F8ZW58MHx8fHwxNzYyNDY5NzU5fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "woman yoga"
+    },
+    {
+      "id": "user-8",
+      "description": "A person working on a pottery wheel.",
+      "imageUrl": "https://images.unsplash.com/photo-1568562764054-8783070ce2f2?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxwZXJzb24lMjBwb3R0ZXJ5fGVufDB8fHx8MTc2MjUxNzQzOHww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "person pottery"
+    },
+    {
+      "id": "user-9",
+      "description": "A man taking a photograph with a DSLR camera.",
+      "imageUrl": "https://images.unsplash.com/photo-1626921665123-577a588e433b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxtYW4lMjBwaG90b2dyYXBoeXxlbnwwfHx8fDE3NjI1MTc0Mzh8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "man photography"
+    },
+    {
+      "id": "user-10",
+      "description": "A person gardening and tending to plants.",
+      "imageUrl": "https://images.unsplash.com/photo-1661865964406-581cc0e21d1f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8cGVyc29uJTIwZ2FyZGVuaW5nfGVufDB8fHx8MTc2MjUxNzQzOHww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "person gardening"
+    },
+    {
+      "id": "user-11",
+      "description": "A woman speaking a foreign language with a native speaker.",
+      "imageUrl": "https://images.unsplash.com/photo-1761410524041-431ee05d437a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxsYW5ndWFnZSUyMGV4Y2hhbmdlfGVufDB8fHx8MTc2MjUxNzQzOHww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "language exchange"
+    },
+    {
+      "id": "user-12",
+      "description": "A man explaining a financial chart to another person.",
+      "imageUrl": "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxidXNpbmVzcyUyMG1lZXRpbmd8ZW58MHx8fHwxNzYyNDA2Mzc5fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "business meeting"
+    }
+  ]
 }
