@@ -1,3 +1,4 @@
+
 export type Skill = {
   name: string;
   level: 'Beginner' | 'Intermediate' | 'Expert';
@@ -51,7 +52,7 @@ export const users: User[] = [
     profilePictureUrlId: 'user-4',
     bio: 'Certified Yoga Instructor and fitness coach. I can help you with your fitness goals!',
     location: 'Miami, FL',
-    skillsOffered: [{ name: 'Yoga', level: 'Expert' }, { name 'Personal Training', level: 'Expert' }],
+    skillsOffered: [{ name: 'Yoga', level: 'Expert' }, { name: 'Personal Training', level: 'Expert' }],
     skillsSought: [{ name: 'Web Development', level: 'Beginner' }, { name: 'Graphic Design', level: 'Beginner' }],
     trustScore: 98,
   },
