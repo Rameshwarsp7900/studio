@@ -8,19 +8,19 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { Skeleton } from '@/components/ui/skeleton';
-import { users as mockUsers } from '@/lib/data';
+import type { User } from '@/lib/data';
 import { CalendarDays, Video } from "lucide-react";
 import { updateDocumentNonBlocking } from "@/firebase/non-blocking-updates";
 import { useToast } from "@/hooks/use-toast";
 
-function SessionCard({ session }: { session: any }) {
+function SessionCard({ session, allUsers }: { session: any, allUsers: User[] | null }) {
     const { user } = useUser();
     const firestore = useFirestore();
     const { toast } = useToast();
     const isTeacher = session.teacherId === user?.uid;
     const otherUserId = isTeacher ? session.learnerId : session.teacherId;
-    const otherUser = mockUsers.find(u => u.id === otherUserId);
-    const userAvatar = otherUser ? PlaceHolderImages.find(p => p.id === otherUser.profilePictureUrlId) : null;
+    const otherUser = allUsers?.find(u => u.id === otherUserId);
+    const userAvatar = otherUser ? PlaceHolderImages.find(p => p.id === 'user-1') : null; // Simplified
     
     const sessionDate = session.scheduledAt?.toDate ? session.scheduledAt.toDate() : new Date(session.scheduledAt);
 
@@ -31,23 +31,16 @@ function SessionCard({ session }: { session: any }) {
         const teacherRef = doc(firestore, 'users', session.teacherId);
         const learnerRef = doc(firestore, 'users', session.learnerId);
 
-        // Mark session as completed
         updateDocumentNonBlocking(sessionRef, { status: 'completed' });
 
-        // Award 1 credit to the teacher
+        const creditsToAward = session.durationHours || 1;
         updateDocumentNonBlocking(teacherRef, {
-            creditsBalance: increment(1)
-        });
-
-        // Deduct credits from learner (assuming 1 credit per hour)
-        const creditsToDeduct = session.durationHours || 1;
-        updateDocumentNonBlocking(learnerRef, {
-            creditsBalance: increment(-creditsToDeduct)
+            creditsBalance: increment(creditsToAward)
         });
 
         toast({
             title: "Session Completed",
-            description: "The session has been marked as complete and credits have been transferred."
+            description: `The session has been marked as complete and ${creditsToAward} credit(s) have been awarded.`
         });
     };
 
@@ -56,12 +49,12 @@ function SessionCard({ session }: { session: any }) {
             <CardContent className="p-4 flex items-center gap-4">
                 <Avatar className="h-16 w-16">
                     {userAvatar && <AvatarImage src={userAvatar.imageUrl} alt="User avatar" />}
-                    <AvatarFallback>{otherUser?.name.charAt(0) || '?'}</AvatarFallback>
+                    <AvatarFallback>{otherUser?.fullName.charAt(0) || '?'}</AvatarFallback>
                 </Avatar>
                 <div className="flex-1">
                     <div className="flex justify-between items-start">
                         <div>
-                            <p className="font-semibold text-lg">{otherUser?.name || 'Unknown User'}</p>
+                            <p className="font-semibold text-lg">{otherUser?.fullName || 'Unknown User'}</p>
                             <p className="text-sm text-muted-foreground">{session.skillName || 'Skill not specified'}</p>
                         </div>
                         <Badge variant={session.status === 'completed' ? 'secondary' : 'default'}>{session.status}</Badge>
@@ -79,7 +72,7 @@ function SessionCard({ session }: { session: any }) {
                 </div>
                 <div className="flex flex-col gap-2">
                     <Button size="sm">Details</Button>
-                    {session.status === 'in_progress' && (
+                    {session.status === 'in_progress' && isTeacher && (
                         <Button size="sm" variant="secondary" onClick={handleCompleteSession}>Complete Session</Button>
                     )}
                     {session.status === 'accepted' && (
@@ -110,8 +103,16 @@ export default function SessionsPage() {
     );
   }, [firestore, user]);
 
-  const { data: allSessions, isLoading } = useCollection(sessionsQuery);
+  const { data: allSessions, isLoading: isLoadingSessions } = useCollection(sessionsQuery);
+
+  const usersCollectionRef = useMemoFirebase(() => {
+    if(!firestore) return null;
+    return collection(firestore, 'users');
+  }, [firestore]);
+  const { data: allUsers, isLoading: isLoadingUsers } = useCollection<User>(usersCollectionRef);
   
+  const isLoading = isLoadingSessions || isLoadingUsers;
+
   const upcomingSessions = (allSessions || [])
     .filter(s => s.status !== 'completed' && s.status !== 'cancelled')
     .sort((a, b) => (a.scheduledAt?.toDate ? a.scheduledAt.toDate() : new Date(a.scheduledAt)) - (b.scheduledAt?.toDate ? b.scheduledAt.toDate() : new Date(b.scheduledAt)));
@@ -136,7 +137,7 @@ export default function SessionsPage() {
                </div>
            ) : upcomingSessions.length > 0 ? (
                <div className="space-y-4 mt-4">
-                   {upcomingSessions.map(session => <SessionCard key={session.id} session={session} />)}
+                   {upcomingSessions.map(session => <SessionCard key={session.id} session={session} allUsers={allUsers} />)}
                </div>
            ) : (
               <Card className="mt-4">
@@ -153,7 +154,7 @@ export default function SessionsPage() {
                 </div>
            ) : pastSessions.length > 0 ? (
                <div className="space-y-4 mt-4">
-                   {pastSessions.map(session => <SessionCard key={session.id} session={session} />)}
+                   {pastSessions.map(session => <SessionCard key={session.id} session={session} allUsers={allUsers} />)}
                </div>
            ) : (
             <Card className="mt-4">

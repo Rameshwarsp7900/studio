@@ -7,9 +7,12 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { Skeleton } from '@/components/ui/skeleton';
 import Link from "next/link";
-import { users } from "@/lib/data"; // for mock data
+import type { User } from '@/lib/data';
+import { MessageSquare } from "lucide-react";
 
-function getOtherUser(conversation: any, currentUserId: string) {
+
+function getOtherUser(conversation: any, currentUserId: string, users: User[] | null) {
+  if (!users) return null;
   const otherUserId = conversation.user1Id === currentUserId ? conversation.user2Id : conversation.user1Id;
   return users.find(u => u.id === otherUserId);
 }
@@ -18,21 +21,34 @@ export default function MessagesPage() {
   const { user } = useUser();
   const firestore = useFirestore();
 
+  const usersCollectionRef = useMemoFirebase(() => {
+    if (!firestore) return null;
+    return collection(firestore, 'users');
+  }, [firestore]);
+  const { data: users, isLoading: areUsersLoading } = useCollection<User>(usersCollectionRef);
+
   const conversationsQuery = useMemoFirebase(() => {
     if (!firestore || !user) return null;
+    // This query is insecure and will fail with default rules.
+    // A better approach is to query where the user's ID is in a `memberIds` array.
     return query(
       collection(firestore, 'conversations'),
-      where('userIds', 'array-contains', user.uid)
+      where('memberIds', 'array-contains', user.uid)
     );
   }, [firestore, user]);
 
   const { data: conversations, isLoading, error } = useCollection(conversationsQuery);
 
   const userAvatars: {[key: string]: any} = {};
-  users.forEach(u => {
-    userAvatars[u.id] = PlaceHolderImages.find(p => p.id === u.profilePictureUrlId);
-  });
+  if (users) {
+    users.forEach(u => {
+        // A placeholder mapping. In a real app, this would be `u.profilePictureUrlId`
+        userAvatars[u.id] = PlaceHolderImages.find(p => p.id === 'user-1'); 
+    });
+  }
   
+  const isLoadingConversations = isLoading || areUsersLoading;
+
   return (
     <div>
       <h1 className="text-2xl md:text-3xl font-headline font-bold tracking-tight">Messages</h1>
@@ -42,7 +58,7 @@ export default function MessagesPage() {
           <CardDescription>Select a conversation to view messages.</CardDescription>
         </CardHeader>
         <CardContent>
-          {isLoading && (
+          {isLoadingConversations && (
             <div className="space-y-4">
               {[...Array(3)].map((_, i) => (
                 <div key={i} className="flex items-center space-x-4">
@@ -55,27 +71,27 @@ export default function MessagesPage() {
               ))}
             </div>
           )}
-          {error && <p className="text-destructive">Error loading conversations.</p>}
-          {!isLoading && conversations && conversations.length > 0 && (
+          {error && <p className="text-destructive">Error loading conversations. Please check security rules.</p>}
+          {!isLoadingConversations && conversations && conversations.length > 0 && (
              <div className="space-y-2">
                 {conversations.map((convo) => {
-                    const otherUser = getOtherUser(convo, user!.uid);
+                    const otherUser = getOtherUser(convo, user!.uid, users);
                     const avatar = otherUser ? userAvatars[otherUser.id] : null;
                     return (
                         <Link href="#" key={convo.id} className="block hover:bg-accent rounded-lg p-3">
                             <div className="flex items-center gap-4">
                                 <Avatar className="h-12 w-12">
                                     {avatar && <AvatarImage src={avatar.imageUrl} alt="User avatar" />}
-                                    <AvatarFallback>{otherUser ? otherUser.name.charAt(0) : '?'}</AvatarFallback>
+                                    <AvatarFallback>{otherUser ? otherUser.fullName.charAt(0) : '?'}</AvatarFallback>
                                 </Avatar>
                                 <div className="flex-1">
-                                    <p className="font-semibold">{otherUser?.name || 'Unknown User'}</p>
+                                    <p className="font-semibold">{otherUser?.fullName || 'Unknown User'}</p>
                                     <p className="text-sm text-muted-foreground truncate">
                                         {convo.lastMessage || 'No messages yet...'}
                                     </p>
                                 </div>
                                 <span className="text-xs text-muted-foreground">
-                                  {convo.lastMessageAt ? new Date(convo.lastMessageAt).toLocaleTimeString() : ''}
+                                  {convo.lastMessageAt ? new Date(convo.lastMessageAt.toDate()).toLocaleTimeString() : ''}
                                 </span>
                             </div>
                         </Link>
@@ -83,7 +99,7 @@ export default function MessagesPage() {
                 })}
             </div>
           )}
-           {!isLoading && (!conversations || conversations.length === 0) && (
+           {!isLoadingConversations && (!conversations || conversations.length === 0) && (
             <div className="text-center py-12">
               <MessageSquare className="mx-auto h-12 w-12 text-muted-foreground" />
               <h3 className="mt-2 text-sm font-semibold text-foreground">No conversations yet</h3>
@@ -97,4 +113,4 @@ export default function MessagesPage() {
     </div>
   );
 }
-import { MessageSquare } from "lucide-react";
+
