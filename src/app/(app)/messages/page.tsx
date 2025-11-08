@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,8 +8,9 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { Skeleton } from '@/components/ui/skeleton';
 import Link from "next/link";
-import type { User } from '@/lib/data';
+import type { User, Conversation } from '@/lib/data';
 import { MessageSquare } from "lucide-react";
+import { sampleUsers, sampleConversations } from "@/lib/sample-data";
 
 
 function getOtherUser(conversation: any, currentUserId: string, users: User[] | null) {
@@ -25,29 +27,30 @@ export default function MessagesPage() {
     if (!firestore) return null;
     return collection(firestore, 'users');
   }, [firestore]);
-  const { data: users, isLoading: areUsersLoading } = useCollection<User>(usersCollectionRef);
+  const { data: usersFromDB, isLoading: areUsersLoading } = useCollection<User>(usersCollectionRef);
 
   const conversationsQuery = useMemoFirebase(() => {
     if (!firestore || !user) return null;
-    // This query is insecure and will fail with default rules.
-    // A better approach is to query where the user's ID is in a `memberIds` array.
     return query(
       collection(firestore, 'conversations'),
       where('memberIds', 'array-contains', user.uid)
     );
   }, [firestore, user]);
 
-  const { data: conversations, isLoading, error } = useCollection(conversationsQuery);
+  const { data: conversationsFromDB, isLoading: areConversationsLoading, error } = useCollection<Conversation>(conversationsQuery);
+
+  const isLoading = areUsersLoading || areConversationsLoading;
+
+  const displayUsers = (!isLoading && usersFromDB && usersFromDB.length > 0) ? usersFromDB : sampleUsers;
+  const displayConversations = (!isLoading && conversationsFromDB && conversationsFromDB.length > 0) ? conversationsFromDB : sampleConversations;
 
   const userAvatars: {[key: string]: any} = {};
-  if (users) {
-    users.forEach(u => {
+  if (displayUsers) {
+    displayUsers.forEach(u => {
         // A placeholder mapping. In a real app, this would be `u.profilePictureUrlId`
         userAvatars[u.id] = PlaceHolderImages.find(p => p.id === 'user-1'); 
     });
   }
-  
-  const isLoadingConversations = isLoading || areUsersLoading;
 
   return (
     <div>
@@ -58,7 +61,7 @@ export default function MessagesPage() {
           <CardDescription>Select a conversation to view messages.</CardDescription>
         </CardHeader>
         <CardContent>
-          {isLoadingConversations && (
+          {isLoading && (
             <div className="space-y-4">
               {[...Array(3)].map((_, i) => (
                 <div key={i} className="flex items-center space-x-4">
@@ -72,10 +75,11 @@ export default function MessagesPage() {
             </div>
           )}
           {error && <p className="text-destructive">Error loading conversations. Please check security rules.</p>}
-          {!isLoadingConversations && conversations && conversations.length > 0 && (
+          {!isLoading && displayConversations && displayConversations.length > 0 && (
              <div className="space-y-2">
-                {conversations.map((convo) => {
-                    const otherUser = getOtherUser(convo, user!.uid, users);
+                {displayConversations.map((convo) => {
+                    const currentUserId = user ? user.uid : 'current-user-placeholder';
+                    const otherUser = getOtherUser(convo, currentUserId, displayUsers);
                     const avatar = otherUser ? userAvatars[otherUser.id] : null;
                     return (
                         <Link href="#" key={convo.id} className="block hover:bg-accent rounded-lg p-3">
@@ -91,7 +95,7 @@ export default function MessagesPage() {
                                     </p>
                                 </div>
                                 <span className="text-xs text-muted-foreground">
-                                  {convo.lastMessageAt ? new Date(convo.lastMessageAt.toDate()).toLocaleTimeString() : ''}
+                                  {convo.lastMessageAt ? new Date(convo.lastMessageAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
                                 </span>
                             </div>
                         </Link>
@@ -99,7 +103,7 @@ export default function MessagesPage() {
                 })}
             </div>
           )}
-           {!isLoadingConversations && (!conversations || conversations.length === 0) && (
+           {!isLoading && (!displayConversations || displayConversations.length === 0) && (
             <div className="text-center py-12">
               <MessageSquare className="mx-auto h-12 w-12 text-muted-foreground" />
               <h3 className="mt-2 text-sm font-semibold text-foreground">No conversations yet</h3>
@@ -113,4 +117,3 @@ export default function MessagesPage() {
     </div>
   );
 }
-

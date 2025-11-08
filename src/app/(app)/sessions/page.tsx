@@ -1,3 +1,4 @@
+
 'use client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -12,12 +13,16 @@ import type { User } from '@/lib/data';
 import { CalendarDays, Video, CheckCircle, Clock } from "lucide-react";
 import { updateDocumentNonBlocking } from "@/firebase/non-blocking-updates";
 import { useToast } from "@/hooks/use-toast";
+import { sampleUsers, sampleSessions } from "@/lib/sample-data";
 
 function SessionCard({ session, allUsers }: { session: any, allUsers: User[] | null }) {
     const { user } = useUser();
     const firestore = useFirestore();
     const { toast } = useToast();
-    const isTeacher = session.teacherId === user?.uid;
+
+    // In a sample session, the current user's ID might be a placeholder
+    const currentUserId = user ? user.uid : 'current-user-placeholder';
+    const isTeacher = session.teacherId === currentUserId;
     const otherUserId = isTeacher ? session.learnerId : session.teacherId;
     const otherUser = allUsers?.find(u => u.id === otherUserId);
     const userAvatar = otherUser ? PlaceHolderImages.find(p => p.id === 'user-1') : null; // Simplified
@@ -124,12 +129,15 @@ export default function SessionsPage() {
   
   const isLoading = isLoadingSessions || isLoadingUsers;
 
-  const upcomingSessions = (allSessions || [])
+  const displaySessions = (!isLoading && allSessions && allSessions.length > 0) ? allSessions : sampleSessions;
+  const displayUsers = (!isLoading && allUsers && allUsers.length > 0) ? allUsers : sampleUsers;
+
+  const upcomingSessions = (displaySessions)
     .filter(s => s.status !== 'completed' && s.status !== 'cancelled' && s.status !== 'disputed')
-    .sort((a, b) => (a.scheduledAt?.toDate ? a.scheduledAt.toDate() : new Date(a.scheduledAt)) - (b.scheduledAt?.toDate ? b.scheduledAt.toDate() : new Date(b.scheduledAt)));
-  const pastSessions = (allSessions || [])
+    .sort((a, b) => new Date(a.scheduledAt).getTime() - new Date(b.scheduledAt).getTime());
+  const pastSessions = (displaySessions)
     .filter(s => s.status === 'completed' || s.status === 'cancelled' || s.status === 'disputed')
-    .sort((a, b) => (b.scheduledAt?.toDate ? b.scheduledAt.toDate() : new Date(b.scheduledAt)) - (a.scheduledAt?.toDate ? a.scheduledAt.toDate() : new Date(a.scheduledAt)));
+    .sort((a, b) => new Date(b.scheduledAt).getTime() - new Date(a.scheduledAt).getTime());
 
   return (
     <div>
@@ -154,7 +162,7 @@ export default function SessionsPage() {
             </Card>
            ) : upcomingSessions.length > 0 ? (
                <div className="space-y-4 mt-4">
-                   {upcomingSessions.map(session => <SessionCard key={session.id} session={session} allUsers={allUsers} />)}
+                   {upcomingSessions.map(session => <SessionCard key={session.id} session={session} allUsers={displayUsers} />)}
                </div>
            ) : (
               <Card className="mt-4">
@@ -179,7 +187,7 @@ export default function SessionsPage() {
             </Card>
            ) : pastSessions.length > 0 ? (
                <div className="space-y-4 mt-4">
-                   {pastSessions.map(session => <SessionCard key={session.id} session={session} allUsers={allUsers} />)}
+                   {pastSessions.map(session => <SessionCard key={session.id} session={session} allUsers={displayUsers} />)}
                </div>
            ) : (
             <Card className="mt-4">

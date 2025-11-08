@@ -1,4 +1,5 @@
-import type { User } from './data';
+
+import type { User, Session, Conversation } from './data';
 
 export const sampleUsers: User[] = [
     {
@@ -125,4 +126,78 @@ export const sampleUsers: User[] = [
         creditsBalance: 18,
         isAdmin: false,
     },
+];
+
+export const sampleSessions: Session[] = [
+    {
+        id: 'sample-session-1',
+        teacherId: 'sample-user-2', // Bob Williams
+        learnerId: 'current-user-placeholder',
+        memberIds: ['sample-user-2', 'current-user-placeholder'],
+        skillId: 'React',
+        sessionType: 'remote',
+        status: 'accepted',
+        scheduledAt: new Date(new Date().setDate(new Date().getDate() + 2)),
+        durationHours: 1,
+    },
+    {
+        id: 'sample-session-2',
+        teacherId: 'current-user-placeholder',
+        learnerId: 'sample-user-3', // Charlie Brown
+        memberIds: ['current-user-placeholder', 'sample-user-3'],
+        skillId: 'Illustration',
+        sessionType: 'remote',
+        status: 'requested',
+        scheduledAt: new Date(new Date().setDate(new Date().getDate() + 5)),
+        durationHours: 2,
+    },
+    {
+        id: 'sample-session-3',
+        teacherId: 'sample-user-7', // Grace Hopper
+        learnerId: 'current-user-placeholder',
+        memberIds: ['sample-user-7', 'current-user-placeholder'],
+        skillId: 'Vinyasa Yoga',
+        sessionType: 'in_person',
+        status: 'in_progress',
+        scheduledAt: new Date(),
+        durationHours: 1,
+    },
+    {
+        id: 'sample-session-4',
+        teacherId: 'current-user-placeholder',
+        learnerId: 'sample-user-4', // Diana Prince
+        memberIds: ['current-user-placeholder', 'sample-user-4'],
+        skillId: 'Web Development',
+        sessionType: 'remote',
+        status: 'completed',
+        scheduledAt: new Date(new Date().setDate(new Date().getDate() - 3)),
+        durationHours: 1.5,
+    },
+];
+
+export const sampleConversations: Conversation[] = [
+    {
+        id: 'sample-convo-1',
+        user1Id: 'current-user-placeholder',
+        user2Id: 'sample-user-1', // Alice Johnson
+        memberIds: ['current-user-placeholder', 'sample-user-1'],
+        lastMessage: 'Hey! I saw you offer illustration lessons. I would love to learn!',
+        lastMessageAt: new Date(new Date().setHours(new Date().getHours() - 1)),
+    },
+    {
+        id: 'sample-convo-2',
+        user1Id: 'sample-user-4', // Diana Prince
+        user2Id: 'current-user-placeholder',
+        memberIds: ['sample-user-4', 'current-user-placeholder'],
+        lastMessage: 'Thanks for the web dev session last week. It was super helpful!',
+        lastMessageAt: new Date(new Date().setDate(new Date().getDate() - 1)),
+    },
+     {
+        id: 'sample-convo-3',
+        user1Id: 'sample-user-6', // Fiona Glenanne
+        user2Id: 'current-user-placeholder',
+        memberIds: ['sample-user-6', 'current-user-placeholder'],
+        lastMessage: 'Sure, I can teach you some guitar basics. When are you free?',
+        lastMessageAt: new Date(new Date().setDate(new Date().getDate() - 2)),
+    }
 ];
