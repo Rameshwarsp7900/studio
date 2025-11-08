@@ -1,6 +1,6 @@
 /**
  * @file SkillSwap Firestore Security Rules
- * @version 6
+ * @version 7
  *
  * @description
  * This ruleset enforces a strict user-ownership model for personal data and a shared-access model for collaborative data.
@@ -11,8 +11,8 @@
  *
  * Key Security Decisions:
  * - Users can only access their own data under `/users/{userId}`.
- * - Admins can read all user profiles and update `creditsBalance`.
- * - Listing of users is allowed for admins only.
+ * - Authenticated users can list all users for discovery purposes.
+ * - Admins can read any user profile and update `creditsBalance`.
  * - Conversations and Sessions use denormalized fields and collection group queries for secure access.
  */
 rules_version = '2';
@@ -22,11 +22,11 @@ service cloud.firestore {
     /**
      * @description Rules for user profiles.
      * Admins can read any user profile and update their credits balance.
-     * Regular users can only access their own data.
+     * Regular users can only access their own data, but can list all users.
      */
     match /users/{userId} {
       allow get: if isOwner(userId) || isAdmin();
-      allow list: if isAdmin();
+      allow list: if isSignedIn();
       allow create: if isSignedIn() && request.resource.data.id == request.auth.uid;
       allow update: if (isExistingOwner(userId) && request.resource.data.id == resource.data.id) || 
                        (isAdmin() && incomingData().diff(resource.data).affectedKeys().hasOnly(['creditsBalance']));
