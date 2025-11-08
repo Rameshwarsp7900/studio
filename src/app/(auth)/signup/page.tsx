@@ -18,6 +18,7 @@ import { initiateEmailSignUp } from '@/firebase/non-blocking-login';
 import { doc } from 'firebase/firestore';
 import { setDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import { useToast } from "@/hooks/use-toast";
+import type { Skill } from '@/lib/data';
 
 export default function SignupPage() {
   const [fullName, setFullName] = useState('');
@@ -33,14 +34,23 @@ export default function SignupPage() {
   useEffect(() => {
     if (!isUserLoading && user && isCreatingProfile) {
         const userDocRef = doc(firestore, "users", user.uid);
+        
+        // Mock data for skills
+        const skillsOffered: Skill[] = [{ name: 'JavaScript', level: 'Intermediate' }];
+        const skillsSought: Skill[] = [{ name: 'Python', level: 'Beginner' }];
+
         const userData = {
         id: user.uid,
         email: user.email,
         fullName: fullName,
-        locationCity: "",
-        locationCountry: "",
-        latitude: 0,
-        longitude: 0,
+        bio: `A new member of the SkillSwap community, excited to learn and share!`,
+        profilePictureUrlId: `user-${Math.ceil(Math.random() * 12)}`,
+        locationCity: "New York",
+        locationCountry: "USA",
+        latitude: 40.7128,
+        longitude: -74.0060,
+        skillsOffered,
+        skillsSought,
         verificationStatus: "unverified",
         trustScore: 50,
         creditsBalance: 10, // Start with 10 credits
@@ -55,6 +65,14 @@ export default function SignupPage() {
 
   const handleSignup = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!fullName || !email || !password) {
+      toast({
+        variant: "destructive",
+        title: "Missing Information",
+        description: "Please fill out all fields.",
+      });
+      return;
+    }
     setIsCreatingProfile(true);
     initiateEmailSignUp(auth, email, password);
   };
@@ -107,6 +125,7 @@ export default function SignupPage() {
               <Input 
                 id="password"
                 type="password"
+                required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
               />

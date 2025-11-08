@@ -2,7 +2,7 @@
 
 import { UserCard } from '@/components/user-card';
 import { getSkillRecommendations } from '@/ai/flows/skill-recommendations';
-import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
+import { useFirestore, useCollection, useMemoFirebase, useUser } from '@/firebase';
 import { collection } from 'firebase/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
 import { UserProfileDialog } from '@/components/user-profile-dialog';
@@ -11,6 +11,7 @@ import type { User as UserData } from '@/lib/data';
 
 
 export default function DashboardPage() {
+  const { user: currentUser } = useUser();
   const firestore = useFirestore();
   const [selectedUser, setSelectedUser] = useState<UserData | null>(null);
 
@@ -37,6 +38,9 @@ export default function DashboardPage() {
   const handleDialogClose = () => {
     setSelectedUser(null);
   }
+  
+  // Filter out the current user from the list
+  const otherUsers = users?.filter(u => u.id !== currentUser?.uid);
 
   return (
     <>
@@ -58,7 +62,7 @@ export default function DashboardPage() {
             </div>
         ) : (
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                {users?.map((user) => (
+                {otherUsers?.map((user) => (
                     <UserCard key={user.id} user={user} onClick={() => handleUserCardClick(user)} />
                 ))}
             </div>

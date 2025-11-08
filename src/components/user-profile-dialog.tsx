@@ -1,7 +1,6 @@
 'use client';
 
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
@@ -21,7 +20,6 @@ const userImages = PlaceHolderImages.filter(p => p.id.startsWith('user-')).slice
 export function UserProfileDialog({ isOpen, user, onClose }: UserProfileDialogProps) {
   if (!user) return null;
 
-  const userAvatar = PlaceHolderImages.find(p => p.id === 'user-1');
   const rating = 4.5; // Static for now
 
   return (
@@ -70,27 +68,25 @@ export function UserProfileDialog({ isOpen, user, onClose }: UserProfileDialogPr
             <div>
               <h3 className="font-semibold mb-2 text-primary">OFFERING</h3>
               <div className="flex flex-wrap gap-2">
-                <Badge variant="secondary">React</Badge>
-                <Badge variant="secondary">UI/UX Design</Badge>
+                {user.skillsOffered?.map(skill => <Badge key={skill.name} variant="secondary">{skill.name}</Badge>) ?? <p className='text-sm text-muted-foreground'>No skills to offer yet.</p>}
               </div>
             </div>
             <div>
               <h3 className="font-semibold mb-2 text-accent-foreground">SEEKING</h3>
               <div className="flex flex-wrap gap-2">
-                <Badge>Node.js</Badge>
-                <Badge>PostgreSQL</Badge>
+                {user.skillsSought?.map(skill => <Badge key={skill.name}>{skill.name}</Badge>) ?? <p className='text-sm text-muted-foreground'>Not seeking any skills right now.</p>}
               </div>
             </div>
           </div>
         </div>
-        <div className="flex justify-around p-4 border-t">
-            <Button variant="outline" size="icon" className="h-16 w-16 rounded-full bg-white shadow-lg">
+        <div className="flex justify-around p-4 border-t bg-background rounded-b-lg">
+            <Button variant="outline" size="icon" className="h-16 w-16 rounded-full bg-white shadow-lg hover:bg-destructive/10" onClick={onClose}>
                 <X className="h-8 w-8 text-destructive" />
             </Button>
-            <Button variant="outline" size="icon" className="h-16 w-16 rounded-full bg-white shadow-lg">
+            <Button variant="outline" size="icon" className="h-16 w-16 rounded-full bg-white shadow-lg hover:bg-primary/10">
                 <MessageCircle className="h-8 w-8 text-primary" />
             </Button>
-            <Button variant="outline" size="icon" className="h-16 w-16 rounded-full bg-white shadow-lg">
+            <Button variant="outline" size="icon" className="h-16 w-16 rounded-full bg-white shadow-lg hover:bg-green-500/10">
                 <Heart className="h-8 w-8 text-green-500" />
             </Button>
         </div>

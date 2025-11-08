@@ -4,7 +4,7 @@ import { type User } from '@/lib/data';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 
 type UserCardProps = {
@@ -36,7 +36,7 @@ export function UserCard({ user, onClick, className }: UserCardProps) {
             <div className="absolute -bottom-10 left-6">
                 <Avatar className="h-20 w-20 border-4 border-card">
                     {profileImage && <AvatarImage src={profileImage.imageUrl} alt={`${user.fullName}'s profile picture`} />}
-                    <AvatarFallback>{user.fullName.charAt(0)}</AvatarFallback>
+                    <AvatarFallback>{user.fullName?.charAt(0) ?? 'U'}</AvatarFallback>
                 </Avatar>
             </div>
         </div>
@@ -54,25 +54,20 @@ export function UserCard({ user, onClick, className }: UserCardProps) {
             </div>
         </div>
       </CardHeader>
-      <CardContent className="flex-1 space-y-4 pt-2">
+      <CardContent className="flex-1 space-y-4 pt-2 px-6 pb-4">
         <div>
           <h4 className="text-sm font-semibold mb-2 text-primary">OFFERING</h4>
           <div className="flex flex-wrap gap-1.5">
-            {/* Mock data for now */}
-            <Badge variant="secondary">React</Badge>
-            <Badge variant="secondary">Photography</Badge>
+            {user.skillsOffered?.map(skill => <Badge key={skill.name} variant="secondary">{skill.name}</Badge>) ?? <p className='text-sm text-muted-foreground'>No skills to offer yet.</p>}
           </div>
         </div>
         <div>
           <h4 className="text-sm font-semibold mb-2 text-accent-foreground">SEEKING</h4>
           <div className="flex flex-wrap gap-1.5">
-            {/* Mock data for now */}
-            <Badge variant="outline">Node.js</Badge>
-            <Badge variant="outline">Spanish</Badge>
+            {user.skillsSought?.map(skill => <Badge key={skill.name}>{skill.name}</Badge>) ?? <p className='text-sm text-muted-foreground'>Not seeking any skills right now.</p>}
           </div>
         </div>
       </CardContent>
-      {/* Footer can be added back if needed */}
     </Card>
   );
 }
