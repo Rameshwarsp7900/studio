@@ -32,7 +32,7 @@ export default function SignupPage() {
   const [isCreatingProfile, setIsCreatingProfile] = useState(false);
 
   useEffect(() => {
-    if (!isUserLoading && user && isCreatingProfile) {
+    if (!isUserLoading && user && isCreatingProfile && firestore) {
         const userDocRef = doc(firestore, "users", user.uid);
         
         // Mock data for skills
@@ -58,10 +58,111 @@ export default function SignupPage() {
         isAdmin: false, // Default to not an admin
         };
         setDocumentNonBlocking(userDocRef, userData, { merge: true });
+        
+        // Create some sample users for demonstration
+        createSampleUsers();
+
         setIsCreatingProfile(false); // Reset flag
         router.push('/dashboard');
     }
   }, [user, isUserLoading, isCreatingProfile, firestore, fullName, router]);
+
+  const createSampleUsers = () => {
+    const sampleUsers = [
+      {
+        id: 'sample-user-1',
+        fullName: 'Alice Johnson',
+        email: 'alice@example.com',
+        profilePictureUrlId: 'user-1',
+        bio: 'Graphic designer and illustrator with a passion for vibrant colors and clean designs. Love to teach and learn!',
+        locationCity: 'Austin',
+        locationCountry: 'TX',
+        skillsOffered: [{ name: 'Illustration', level: 'Expert' }, { name: 'Branding', level: 'Intermediate' }],
+        skillsSought: [{ name: 'Photography', level: 'Beginner' }],
+        trustScore: 92,
+        creditsBalance: 15,
+        isAdmin: false,
+      },
+      {
+        id: 'sample-user-2',
+        fullName: 'Bob Williams',
+        email: 'bob@example.com',
+        profilePictureUrlId: 'user-2',
+        bio: 'Full-stack developer with 10 years of experience. I enjoy building scalable web applications and mentoring junior developers.',
+        locationCity: 'San Francisco',
+        locationCountry: 'CA',
+        skillsOffered: [{ name: 'React', level: 'Expert' }, { name: 'Node.js', level: 'Expert' }],
+        skillsSought: [{ name: 'Machine Learning', level: 'Beginner' }],
+        trustScore: 95,
+        creditsBalance: 5,
+        isAdmin: false,
+      },
+      {
+        id: 'sample-user-3',
+        fullName: 'Charlie Brown',
+        email: 'charlie@example.com',
+        profilePictureUrlId: 'user-3',
+        bio: 'Professional musician and music teacher. Can teach guitar, piano, and music theory.',
+        locationCity: 'Nashville',
+        locationCountry: 'TN',
+        skillsOffered: [{ name: 'Guitar', level: 'Expert' }, { name: 'Piano', level: 'Intermediate' }],
+        skillsSought: [{ name: 'Songwriting', level: 'Intermediate' }],
+        trustScore: 88,
+        creditsBalance: 20,
+        isAdmin: false,
+      },
+       {
+        id: 'sample-user-4',
+        fullName: 'Diana Prince',
+        email: 'diana@example.com',
+        profilePictureUrlId: 'user-4',
+        bio: 'Certified yoga instructor and wellness coach. Helping people find balance and strength.',
+        locationCity: 'Miami',
+        locationCountry: 'FL',
+        skillsOffered: [{ name: 'Yoga', level: 'Expert' }, { name: 'Meditation', level: 'Expert' }],
+        skillsSought: [{ name: 'Nutrition', level: 'Beginner' }],
+        trustScore: 99,
+        creditsBalance: 12,
+        isAdmin: false,
+      },
+      {
+        id: 'sample-user-5',
+        fullName: 'Ethan Hunt',
+        email: 'ethan@example.com',
+        profilePictureUrlId: 'user-5',
+        bio: 'Language enthusiast. Fluent in Spanish, French, and learning Japanese. Let\'s practice!',
+        locationCity: 'London',
+        locationCountry: 'UK',
+        skillsOffered: [{ name: 'Spanish', level: 'Expert' }, { name: 'French', level: 'Intermediate' }],
+        skillsSought: [{ name: 'Japanese', level: 'Beginner' }],
+        trustScore: 91,
+        creditsBalance: 8,
+        isAdmin: false,
+      },
+      {
+        id: 'sample-user-6',
+        fullName: 'Fiona Glenanne',
+        email: 'fiona@example.com',
+        profilePictureUrlId: 'user-6',
+        bio: 'Culinary artist and former pastry chef. I can teach you the art of French baking.',
+        locationCity: 'Paris',
+        locationCountry: 'France',
+        skillsOffered: [{ name: 'Baking', level: 'Expert' }, { name: 'Cooking', level: 'Intermediate' }],
+        skillsSought: [{ name: 'Cocktail Making', level: 'Beginner' }],
+        trustScore: 94,
+        creditsBalance: 25,
+        isAdmin: false,
+      }
+    ];
+
+    if (!firestore) return;
+
+    sampleUsers.forEach(sampleUser => {
+      const sampleUserDocRef = doc(firestore, "users", sampleUser.id);
+      setDocumentNonBlocking(sampleUserDocRef, sampleUser, { merge: true });
+    });
+  }
+
 
   const handleSignup = (e: React.FormEvent) => {
     e.preventDefault();
