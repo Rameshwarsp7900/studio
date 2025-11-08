@@ -1,0 +1,1145 @@
+{
+  "entities": {
+    "User": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "User",
+      "type": "object",
+      "description": "Represents a user in the SkillSwap application.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the user entity."
+        },
+        "email": {
+          "type": "string",
+          "description": "User's email address.",
+          "format": "email"
+        },
+        "phone": {
+          "type": "string",
+          "description": "User's phone number."
+        },
+        "fullName": {
+          "type": "string",
+          "description": "User's full name."
+        },
+        "profileImageUrl": {
+          "type": "string",
+          "description": "URL of the user's profile image.",
+          "format": "uri"
+        },
+        "bio": {
+          "type": "string",
+          "description": "User's biography."
+        },
+        "locationCity": {
+          "type": "string",
+          "description": "User's city."
+        },
+        "locationCountry": {
+          "type": "string",
+          "description": "User's country."
+        },
+        "latitude": {
+          "type": "number",
+          "description": "User's latitude."
+        },
+        "longitude": {
+          "type": "number",
+          "description": "User's longitude."
+        },
+        "verificationStatus": {
+          "type": "string",
+          "description": "User's verification status (unverified, pending, verified)."
+        },
+        "trustScore": {
+          "type": "number",
+          "description": "User's trust score (0-100)."
+        },
+        "creditsBalance": {
+          "type": "number",
+          "description": "User's credits balance."
+        },
+        "lastActiveAt": {
+          "type": "string",
+          "description": "Timestamp of user's last activity.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "email",
+        "fullName",
+        "locationCity",
+        "locationCountry",
+        "latitude",
+        "longitude",
+        "verificationStatus",
+        "trustScore",
+        "creditsBalance"
+      ]
+    },
+    "Skill": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Skill",
+      "type": "object",
+      "description": "Represents a skill that a user can offer or seek.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the skill entity."
+        },
+        "name": {
+          "type": "string",
+          "description": "Name of the skill."
+        },
+        "category": {
+          "type": "string",
+          "description": "Category of the skill (Creative, Technical, Business, Languages, Lifestyle, Academic)."
+        },
+        "subCategory": {
+          "type": "string",
+          "description": "Subcategory of the skill."
+        },
+        "description": {
+          "type": "string",
+          "description": "Description of the skill."
+        },
+        "iconUrl": {
+          "type": "string",
+          "description": "URL of the skill's icon.",
+          "format": "uri"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "category",
+        "subCategory",
+        "description"
+      ]
+    },
+    "UserSkill": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "UserSkill",
+      "type": "object",
+      "description": "Represents a skill associated with a user.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the user skill entity."
+        },
+        "userId": {
+          "type": "string",
+          "description": "Reference to User. (Relationship: User 1:N UserSkill)"
+        },
+        "skillId": {
+          "type": "string",
+          "description": "Reference to Skill. (Relationship: Skill 1:N UserSkill)"
+        },
+        "skillType": {
+          "type": "string",
+          "description": "Type of skill (offering, seeking)."
+        },
+        "proficiencyLevel": {
+          "type": "string",
+          "description": "Proficiency level (beginner, intermediate, expert)."
+        },
+        "yearsExperience": {
+          "type": "number",
+          "description": "Years of experience in the skill."
+        },
+        "portfolioUrls": {
+          "type": "array",
+          "description": "URLs of the user's portfolio for the skill.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "hourlyCredits": {
+          "type": "number",
+          "description": "Hourly credits for teaching the skill."
+        }
+      },
+      "required": [
+        "id",
+        "userId",
+        "skillId",
+        "skillType",
+        "proficiencyLevel",
+        "yearsExperience",
+        "hourlyCredits"
+      ]
+    },
+    "Transaction": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Transaction",
+      "type": "object",
+      "description": "Represents a credit transaction between users.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the transaction entity."
+        },
+        "sessionId": {
+          "type": "string",
+          "description": "Reference to Session. (Relationship: Session 1:N Transaction)"
+        },
+        "fromUserId": {
+          "type": "string",
+          "description": "Reference to User (Sender). (Relationship: User 1:N Transaction (as sender))"
+        },
+        "toUserId": {
+          "type": "string",
+          "description": "Reference to User (Receiver). (Relationship: User 1:N Transaction (as receiver))"
+        },
+        "creditsAmount": {
+          "type": "number",
+          "description": "Amount of credits transferred."
+        },
+        "transactionType": {
+          "type": "string",
+          "description": "Type of transaction (session_complete, admin_grant, refund, purchase)."
+        },
+        "status": {
+          "type": "string",
+          "description": "Status of the transaction (pending, completed, failed)."
+        }
+      },
+      "required": [
+        "id",
+        "sessionId",
+        "fromUserId",
+        "toUserId",
+        "creditsAmount",
+        "transactionType",
+        "status"
+      ]
+    },
+    "CreditBalance": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "CreditBalance",
+      "type": "object",
+      "description": "Represents the credit balance of a user.",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "Reference to User. (Relationship: User 1:1 CreditBalance)"
+        },
+        "currentBalance": {
+          "type": "number",
+          "description": "User's current credit balance."
+        },
+        "lifetimeEarned": {
+          "type": "number",
+          "description": "Total credits earned by the user."
+        },
+        "lifetimeSpent": {
+          "type": "number",
+          "description": "Total credits spent by the user."
+        }
+      },
+      "required": [
+        "userId",
+        "currentBalance",
+        "lifetimeEarned",
+        "lifetimeSpent"
+      ]
+    },
+    "Session": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Session",
+      "type": "object",
+      "description": "Represents a session between two users for skill swapping.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the session entity."
+        },
+        "teacherId": {
+          "type": "string",
+          "description": "Reference to User (Teacher). (Relationship: User 1:N Session (as teacher))"
+        },
+        "learnerId": {
+          "type": "string",
+          "description": "Reference to User (Learner). (Relationship: User 1:N Session (as learner))"
+        },
+        "skillId": {
+          "type": "string",
+          "description": "Reference to Skill. (Relationship: Skill 1:N Session)"
+        },
+        "sessionType": {
+          "type": "string",
+          "description": "Type of session (in_person, remote)."
+        },
+        "status": {
+          "type": "string",
+          "description": "Status of the session (requested, accepted, in_progress, completed, cancelled, disputed)."
+        },
+        "scheduledAt": {
+          "type": "string",
+          "description": "Scheduled date and time of the session.",
+          "format": "date-time"
+        },
+        "durationHours": {
+          "type": "number",
+          "description": "Duration of the session in hours."
+        },
+        "locationName": {
+          "type": "string",
+          "description": "Name of the location for in-person sessions."
+        },
+        "locationLatitude": {
+          "type": "number",
+          "description": "Latitude of the location for in-person sessions."
+        },
+        "locationLongitude": {
+          "type": "number",
+          "description": "Longitude of the location for in-person sessions."
+        },
+        "remoteMeetingLink": {
+          "type": "string",
+          "description": "Link for remote meeting."
+        },
+        "creditsAmount": {
+          "type": "number",
+          "description": "Amount of credits exchanged for the session."
+        },
+        "teacherCheckedInAt": {
+          "type": "string",
+          "description": "Timestamp of when the teacher checked in.",
+          "format": "date-time"
+        },
+        "learnerCheckedInAt": {
+          "type": "string",
+          "description": "Timestamp of when the learner checked in.",
+          "format": "date-time"
+        },
+        "teacherCheckedOutAt": {
+          "type": "string",
+          "description": "Timestamp of when the teacher checked out.",
+          "format": "date-time"
+        },
+        "learnerCheckedOutAt": {
+          "type": "string",
+          "description": "Timestamp of when the learner checked out.",
+          "format": "date-time"
+        },
+        "verificationPhotoUrl": {
+          "type": "string",
+          "description": "URL of the verification photo for the session.",
+          "format": "uri"
+        },
+        "sessionNotes": {
+          "type": "string",
+          "description": "Notes about the session."
+        }
+      },
+      "required": [
+        "id",
+        "teacherId",
+        "learnerId",
+        "skillId",
+        "sessionType",
+        "status",
+        "scheduledAt",
+        "durationHours",
+        "creditsAmount"
+      ]
+    },
+    "Availability": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Availability",
+      "type": "object",
+      "description": "Represents a user's availability for sessions.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the availability entity."
+        },
+        "userId": {
+          "type": "string",
+          "description": "Reference to User. (Relationship: User 1:N Availability)"
+        },
+        "dayOfWeek": {
+          "type": "number",
+          "description": "Day of the week (0-6, Sunday=0)."
+        },
+        "startTime": {
+          "type": "string",
+          "description": "Start time of availability (HH:MM)."
+        },
+        "endTime": {
+          "type": "string",
+          "description": "End time of availability (HH:MM)."
+        },
+        "isAvailable": {
+          "type": "boolean",
+          "description": "Whether the user is available during this time."
+        }
+      },
+      "required": [
+        "id",
+        "userId",
+        "dayOfWeek",
+        "startTime",
+        "endTime",
+        "isAvailable"
+      ]
+    },
+    "Conversation": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Conversation",
+      "type": "object",
+      "description": "Represents a conversation between two users.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the conversation entity."
+        },
+        "user1Id": {
+          "type": "string",
+          "description": "Reference to User (User 1). (Relationship: User 1:N Conversation (as user1))"
+        },
+        "user2Id": {
+          "type": "string",
+          "description": "Reference to User (User 2). (Relationship: User 1:N Conversation (as user2))"
+        },
+        "lastMessageAt": {
+          "type": "string",
+          "description": "Timestamp of the last message in the conversation.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "user1Id",
+        "user2Id"
+      ]
+    },
+    "Message": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Message",
+      "type": "object",
+      "description": "Represents a message in a conversation.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the message entity."
+        },
+        "conversationId": {
+          "type": "string",
+          "description": "Reference to Conversation. (Relationship: Conversation 1:N Message)"
+        },
+        "senderId": {
+          "type": "string",
+          "description": "Reference to User (Sender). (Relationship: User 1:N Message (as sender))"
+        },
+        "messageText": {
+          "type": "string",
+          "description": "Text content of the message."
+        },
+        "messageType": {
+          "type": "string",
+          "description": "Type of message (text, image, file)."
+        },
+        "mediaUrl": {
+          "type": "string",
+          "description": "URL of the media file (if any).",
+          "format": "uri"
+        },
+        "readAt": {
+          "type": "string",
+          "description": "Timestamp of when the message was read.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "conversationId",
+        "senderId",
+        "messageText",
+        "messageType"
+      ]
+    },
+    "Review": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Review",
+      "type": "object",
+      "description": "Represents a review for a session.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the review entity."
+        },
+        "sessionId": {
+          "type": "string",
+          "description": "Reference to Session. (Relationship: Session 1:1 Review)"
+        },
+        "reviewerId": {
+          "type": "string",
+          "description": "Reference to User (Reviewer). (Relationship: User 1:N Review (as reviewer))"
+        },
+        "revieweeId": {
+          "type": "string",
+          "description": "Reference to User (Reviewee). (Relationship: User 1:N Review (as reviewee))"
+        },
+        "overallRating": {
+          "type": "number",
+          "description": "Overall rating (1-5)."
+        },
+        "teachingQualityRating": {
+          "type": "number",
+          "description": "Rating for teaching quality (1-5)."
+        },
+        "communicationRating": {
+          "type": "number",
+          "description": "Rating for communication (1-5)."
+        },
+        "punctualityRating": {
+          "type": "number",
+          "description": "Rating for punctuality (1-5)."
+        },
+        "reviewText": {
+          "type": "string",
+          "description": "Text content of the review."
+        },
+        "isFlagged": {
+          "type": "boolean",
+          "description": "Whether the review has been flagged for moderation."
+        }
+      },
+      "required": [
+        "id",
+        "sessionId",
+        "reviewerId",
+        "revieweeId",
+        "overallRating",
+        "teachingQualityRating",
+        "communicationRating",
+        "punctualityRating"
+      ]
+    },
+    "Verification": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Verification",
+      "type": "object",
+      "description": "Represents a user's verification status.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the verification entity."
+        },
+        "userId": {
+          "type": "string",
+          "description": "Reference to User. (Relationship: User 1:1 Verification)"
+        },
+        "idDocumentUrl": {
+          "type": "string",
+          "description": "URL of the ID document.",
+          "format": "uri"
+        },
+        "selfieUrl": {
+          "type": "string",
+          "description": "URL of the selfie.",
+          "format": "uri"
+        },
+        "verificationStatus": {
+          "type": "string",
+          "description": "Verification status (pending, approved, rejected)."
+        },
+        "verifiedAt": {
+          "type": "string",
+          "description": "Timestamp of when the verification was completed.",
+          "format": "date-time"
+        },
+        "verifiedByAdminId": {
+          "type": "string",
+          "description": "Reference to User (Admin). (Relationship: User 1:N Verification (as admin))"
+        }
+      },
+      "required": [
+        "id",
+        "userId",
+        "verificationStatus"
+      ]
+    },
+    "Report": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Report",
+      "type": "object",
+      "description": "Represents a report submitted by a user.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the report entity."
+        },
+        "reporterId": {
+          "type": "string",
+          "description": "Reference to User (Reporter). (Relationship: User 1:N Report (as reporter))"
+        },
+        "reportedUserId": {
+          "type": "string",
+          "description": "Reference to User (Reported). (Relationship: User 1:N Report (as reported))"
+        },
+        "sessionId": {
+          "type": "string",
+          "description": "Reference to Session. (Relationship: Session 1:N Report)"
+        },
+        "reason": {
+          "type": "string",
+          "description": "Reason for the report (inappropriate, no_show, harassment, fraud, other)."
+        },
+        "description": {
+          "type": "string",
+          "description": "Description of the report."
+        },
+        "status": {
+          "type": "string",
+          "description": "Status of the report (pending, investigating, resolved, dismissed)."
+        },
+        "resolvedAt": {
+          "type": "string",
+          "description": "Timestamp of when the report was resolved.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "reporterId",
+        "reportedUserId",
+        "reason",
+        "description",
+        "status"
+      ]
+    },
+    "BlockedUser": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "BlockedUser",
+      "type": "object",
+      "description": "Represents a blocked user relationship.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the blocked user entity."
+        },
+        "blockerId": {
+          "type": "string",
+          "description": "Reference to User (Blocker). (Relationship: User 1:N BlockedUser (as blocker))"
+        },
+        "blockedUserId": {
+          "type": "string",
+          "description": "Reference to User (Blocked). (Relationship: User 1:N BlockedUser (as blocked))"
+        }
+      },
+      "required": [
+        "id",
+        "blockerId",
+        "blockedUserId"
+      ]
+    },
+    "Notification": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Notification",
+      "type": "object",
+      "description": "Represents a notification for a user.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the notification entity."
+        },
+        "userId": {
+          "type": "string",
+          "description": "Reference to User. (Relationship: User 1:N Notification)"
+        },
+        "notificationType": {
+          "type": "string",
+          "description": "Type of notification (session_request, session_accepted, new_message, etc.)."
+        },
+        "title": {
+          "type": "string",
+          "description": "Title of the notification."
+        },
+        "body": {
+          "type": "string",
+          "description": "Body of the notification."
+        },
+        "data": {
+          "type": "string",
+          "description": "Additional data associated with the notification (JSON string)."
+        },
+        "isRead": {
+          "type": "boolean",
+          "description": "Whether the notification has been read."
+        }
+      },
+      "required": [
+        "id",
+        "userId",
+        "notificationType",
+        "title",
+        "body",
+        "isRead"
+      ]
+    },
+    "NotificationPreference": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "NotificationPreference",
+      "type": "object",
+      "description": "Represents a user's notification preferences.",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "Reference to User. (Relationship: User 1:1 NotificationPreference)"
+        },
+        "pushEnabled": {
+          "type": "boolean",
+          "description": "Whether push notifications are enabled."
+        },
+        "emailEnabled": {
+          "type": "boolean",
+          "description": "Whether email notifications are enabled."
+        },
+        "smsEnabled": {
+          "type": "boolean",
+          "description": "Whether SMS notifications are enabled."
+        },
+        "notificationTypes": {
+          "type": "string",
+          "description": "Array of enabled notification types (JSON string)."
+        }
+      },
+      "required": [
+        "userId",
+        "pushEnabled",
+        "emailEnabled",
+        "smsEnabled"
+      ]
+    },
+    "Badge": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Badge",
+      "type": "object",
+      "description": "Represents an achievement badge.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the badge entity."
+        },
+        "name": {
+          "type": "string",
+          "description": "Name of the badge."
+        },
+        "description": {
+          "type": "string",
+          "description": "Description of the badge."
+        },
+        "iconUrl": {
+          "type": "string",
+          "description": "URL of the badge's icon.",
+          "format": "uri"
+        },
+        "criteria": {
+          "type": "string",
+          "description": "Criteria for earning the badge (JSON string)."
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "description",
+        "iconUrl",
+        "criteria"
+      ]
+    },
+    "UserBadge": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "UserBadge",
+      "type": "object",
+      "description": "Represents a badge earned by a user.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the user badge entity."
+        },
+        "userId": {
+          "type": "string",
+          "description": "Reference to User. (Relationship: User 1:N UserBadge)"
+        },
+        "badgeId": {
+          "type": "string",
+          "description": "Reference to Badge. (Relationship: Badge 1:N UserBadge)"
+        },
+        "earnedAt": {
+          "type": "string",
+          "description": "Timestamp of when the badge was earned.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "userId",
+        "badgeId",
+        "earnedAt"
+      ]
+    },
+    "Streak": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Streak",
+      "type": "object",
+      "description": "Represents a user's streak.",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "Reference to User. (Relationship: User 1:1 Streak)"
+        },
+        "currentStreakDays": {
+          "type": "number",
+          "description": "Current streak in days."
+        },
+        "longestStreakDays": {
+          "type": "number",
+          "description": "Longest streak in days."
+        },
+        "lastActivityDate": {
+          "type": "string",
+          "description": "Date of the last activity.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "userId",
+        "currentStreakDays",
+        "longestStreakDays",
+        "lastActivityDate"
+      ]
+    }
+  },
+  "auth": {
+    "providers": [
+      "password",
+      "anonymous"
+    ]
+  },
+  "firestore": {
+    "structure": [
+      {
+        "path": "/users/{userId}",
+        "definition": {
+          "entityName": "User",
+          "schema": {
+            "$ref": "#/backend/entities/User"
+          },
+          "description": "Stores user profiles.  The 'userId' parameter represents the unique identifier for each user.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier for the user."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/skills/{skillId}",
+        "definition": {
+          "entityName": "Skill",
+          "schema": {
+            "$ref": "#/backend/entities/Skill"
+          },
+          "description": "Stores predefined skill categories and subcategories.",
+          "params": [
+            {
+              "name": "skillId",
+              "description": "The unique identifier for the skill."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/userSkills/{userSkillId}",
+        "definition": {
+          "entityName": "UserSkill",
+          "schema": {
+            "$ref": "#/backend/entities/UserSkill"
+          },
+          "description": "Stores skills associated with a user. The 'userId' parameter identifies the user, and 'userSkillId' identifies the skill associated with that user.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier for the user."
+            },
+            {
+              "name": "userSkillId",
+              "description": "The unique identifier for the user skill."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/sessions/{sessionId}/transactions/{transactionId}",
+        "definition": {
+          "entityName": "Transaction",
+          "schema": {
+            "$ref": "#/backend/entities/Transaction"
+          },
+          "description": "Stores credit transactions between users related to a specific session. The 'sessionId' parameter identifies the session, and 'transactionId' identifies the transaction.",
+          "params": [
+            {
+              "name": "sessionId",
+              "description": "The unique identifier for the session."
+            },
+            {
+              "name": "transactionId",
+              "description": "The unique identifier for the transaction."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/creditBalance",
+        "definition": {
+          "entityName": "CreditBalance",
+          "schema": {
+            "$ref": "#/backend/entities/CreditBalance"
+          },
+          "description": "Stores the credit balance for each user. The 'userId' parameter identifies the user.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier for the user."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/sessions/{sessionId}",
+        "definition": {
+          "entityName": "Session",
+          "schema": {
+            "$ref": "#/backend/entities/Session"
+          },
+          "description": "Stores session information between two users for skill swapping. Includes denormalized 'teacherId' and 'learnerId' for authorization independence.  The 'sessionId' parameter identifies the session.",
+          "params": [
+            {
+              "name": "sessionId",
+              "description": "The unique identifier for the session."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/availabilities/{availabilityId}",
+        "definition": {
+          "entityName": "Availability",
+          "schema": {
+            "$ref": "#/backend/entities/Availability"
+          },
+          "description": "Stores a user's availability for sessions. The 'userId' parameter identifies the user, and 'availabilityId' identifies the availability slot.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier for the user."
+            },
+            {
+              "name": "availabilityId",
+              "description": "The unique identifier for the availability."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/conversations/{conversationId}",
+        "definition": {
+          "entityName": "Conversation",
+          "schema": {
+            "$ref": "#/backend/entities/Conversation"
+          },
+          "description": "Stores conversations between two users. The 'conversationId' parameter identifies the conversation. Includes denormalized 'user1Id' and 'user2Id' for authorization independence.",
+          "params": [
+            {
+              "name": "conversationId",
+              "description": "The unique identifier for the conversation."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/conversations/{conversationId}/messages/{messageId}",
+        "definition": {
+          "entityName": "Message",
+          "schema": {
+            "$ref": "#/backend/entities/Message"
+          },
+          "description": "Stores messages within a conversation. The 'conversationId' parameter identifies the conversation, and 'messageId' identifies the message.",
+          "params": [
+            {
+              "name": "conversationId",
+              "description": "The unique identifier for the conversation."
+            },
+            {
+              "name": "messageId",
+              "description": "The unique identifier for the message."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/sessions/{sessionId}/review",
+        "definition": {
+          "entityName": "Review",
+          "schema": {
+            "$ref": "#/backend/entities/Review"
+          },
+          "description": "Stores a review for a session. The 'sessionId' parameter identifies the session.",
+          "params": [
+            {
+              "name": "sessionId",
+              "description": "The unique identifier for the session."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/verification",
+        "definition": {
+          "entityName": "Verification",
+          "schema": {
+            "$ref": "#/backend/entities/Verification"
+          },
+          "description": "Stores verification data for a user. The 'userId' parameter identifies the user.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier for the user."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/reports/{reportId}",
+        "definition": {
+          "entityName": "Report",
+          "schema": {
+            "$ref": "#/backend/entities/Report"
+          },
+          "description": "Stores reports submitted by users.  The 'reportId' parameter identifies the report.",
+          "params": [
+            {
+              "name": "reportId",
+              "description": "The unique identifier for the report."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/blockedUsers/{blockedUserId}",
+        "definition": {
+          "entityName": "BlockedUser",
+          "schema": {
+            "$ref": "#/backend/entities/BlockedUser"
+          },
+          "description": "Stores blocked user relationships. The 'userId' parameter identifies the user who blocked another user, and 'blockedUserId' identifies the blocked user.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier for the user who is blocking another user."
+            },
+            {
+              "name": "blockedUserId",
+              "description": "The unique identifier for the blocked user."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/notifications/{notificationId}",
+        "definition": {
+          "entityName": "Notification",
+          "schema": {
+            "$ref": "#/backend/entities/Notification"
+          },
+          "description": "Stores notifications for a user. The 'userId' parameter identifies the user, and 'notificationId' identifies the notification.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier for the user."
+            },
+            {
+              "name": "notificationId",
+              "description": "The unique identifier for the notification."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/notificationPreferences",
+        "definition": {
+          "entityName": "NotificationPreference",
+          "schema": {
+            "$ref": "#/backend/entities/NotificationPreference"
+          },
+          "description": "Stores notification preferences for a user. The 'userId' parameter identifies the user.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier for the user."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/badges/{badgeId}",
+        "definition": {
+          "entityName": "Badge",
+          "schema": {
+            "$ref": "#/backend/entities/Badge"
+          },
+          "description": "Stores achievement badges.",
+          "params": [
+            {
+              "name": "badgeId",
+              "description": "The unique identifier for the badge."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/userBadges/{userBadgeId}",
+        "definition": {
+          "entityName": "UserBadge",
+          "schema": {
+            "$ref": "#/backend/entities/UserBadge"
+          },
+          "description": "Stores badges earned by a user. The 'userId' parameter identifies the user, and 'userBadgeId' identifies the earned badge.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier for the user."
+            },
+            {
+              "name": "userBadgeId",
+              "description": "The unique identifier for the user badge."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/streak",
+        "definition": {
+          "entityName": "Streak",
+          "schema": {
+            "$ref": "#/backend/entities/Streak"
+          },
+          "description": "Stores streak data for a user. The 'userId' parameter identifies the user.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier for the user."
+            }
+          ]
+        }
+      }
+    ],
+    "reasoning": "The Firestore data structure is designed to prioritize authorization independence, clarity, and security. It adheres to the principles of DBAC (Database-driven Access Control), avoids hierarchical authorization dependencies, and supports secure list operations.\n\n**Authorization Independence:**\n\n*   Denormalization is heavily employed. For example, the `sessions` collection denormalizes `teacherId` and `learnerId` to ensure rules can validate the access of either user without needing to `get()` the user document. Similarly, collaborative data uses membership maps.\n\n**Structural Segregation:**\n\n*   Data with different security requirements are stored in separate collections. User-owned data like `UserSkills`, `Availabilities`, `Notifications` are stored within the `/users/{userId}` path, while collaborative data like `Conversations`, `Sessions`, and `Reviews` are stored at the root.\n\n**Access Modeling:**\n\n*   Private data: User profiles and associated data are stored under `/users/{userId}`, ensuring path-based ownership.\n*   Collaborative data: Membership maps are used for collections like `Conversations`, `Sessions`.\n*   Global Roles (DBAC): dedicated collections are used for administrative functions.\n\n**QAPs (Rules are not Filters):**\n\n*   Segregation into user-owned subcollections and root-level collaborative collections supports secure `list` operations. Rules can efficiently query data based on the user's `uid` without needing to filter based on document content.\n\n**Invariants:**\n\n*   The structure supports the integrity of ownership, timestamps, and denormalized data. Security rules can enforce that only the correct user can modify their data and protect against tampering with important fields.\n\n**Example Scenario:**\n\nTo create a new session, the structure allows atomic creation of session and any related documents. Security rules enforce that only the teacher or learner can create these documents, without requiring `get()` calls to parent or related documents.  The `members` map within the session allows all authorization to occur without additional reads."
+  }
+}

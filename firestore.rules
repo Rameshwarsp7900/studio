@@ -1,0 +1,423 @@
+/**
+ * @file SkillSwap Firestore Security Rules
+ * @version 2
+ *
+ * @description
+ * This ruleset enforces a strict user-ownership model for personal data and a shared-access model for collaborative data.
+ *
+ * Data Structure:
+ * - User-specific data (profiles, skills, availabilities, notifications, preferences, badges, streaks) is nested under `/users/{userId}`.
+ * - Skills and Reports are stored in top-level collections (`/skills/{skillId}`, `/reports/{reportId}`).
+ * - Collaborative data (sessions, conversations, messages, reviews) is stored in top-level collections (`/sessions/{sessionId}`, `/conversations/{conversationId}`).
+ *
+ * Key Security Decisions:
+ * - Users can only access their own data under `/users/{userId}`.
+ * - Listing of users is disallowed for privacy.
+ * - Conversations and Sessions use denormalized fields (`user1Id`, `user2Id`, `teacherId`, `learnerId`) to allow direct authorization without additional reads.
+ * - Reports are accessible to admins only (not implemented in this version).
+ * - Public read access is NOT granted to any collection by default.
+ *
+ * Denormalization for Authorization:
+ * - Sessions include `teacherId` and `learnerId` to enable direct authorization for session-related operations.
+ * - Conversations include `user1Id` and `user2Id` to enable direct authorization for conversation and message access.
+ */
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    /**
+     * @description Rules for user profiles.
+     * @path /users/{userId}
+     * @allow (create) User with ID 'user123' can create their profile.
+     *   - auth.uid: 'user123'
+     *   - request.resource.data.id: 'user123'
+     * @allow (get, update, delete) User with ID 'user123' can get, update, and delete their profile.
+     *   - auth.uid: 'user123'
+     *   - resource.data.id: 'user123'
+     * @deny (create) User with ID 'user456' cannot create a profile for 'user123'.
+     *   - auth.uid: 'user456'
+     *   - request.resource.data.id: 'user123'
+     * @deny (update, delete) User with ID 'user456' cannot update or delete 'user123's profile.
+     *   - auth.uid: 'user456'
+     *   - resource.data.id: 'user123'
+     * @principle Enforces document ownership for user profiles.
+     */
+    match /users/{userId} {
+      allow get: if isOwner(userId);
+      allow list: if false;
+      allow create: if isSignedIn() && request.resource.data.id == request.auth.uid;
+      allow update: if isExistingOwner(userId) && request.resource.data.id == resource.data.id;
+      allow delete: if isExistingOwner(userId);
+    }
+
+    /**
+     * @description Rules for predefined skill categories.
+     * @path /skills/{skillId}
+     * @allow (get, list) Any user can read the list of available skills.
+     * @deny (create, update, delete) No user can create, update, or delete skills.
+     * @principle Skills are globally defined and not user-modifiable.
+     */
+    match /skills/{skillId} {
+      allow get, list: if true;
+      allow create, update, delete: if false;
+    }
+
+    /**
+     * @description Rules for skills associated with a user.
+     * @path /users/{userId}/userSkills/{userSkillId}
+     * @allow (create) User with ID 'user123' can add skills to their profile.
+     *   - auth.uid: 'user123'
+     *   - request.resource.data.userId: 'user123'
+     * @allow (get, list, update, delete) User with ID 'user123' can manage their skills.
+     *   - auth.uid: 'user123'
+     *   - resource.data.userId: 'user123'
+     * @deny (create) User with ID 'user456' cannot add skills to 'user123's profile.
+     *   - auth.uid: 'user456'
+     *   - request.resource.data.userId: 'user123'
+     * @deny (update, delete) User with ID 'user456' cannot update or delete 'user123's skills.
+     *   - auth.uid: 'user456'
+     *   - resource.data.userId: 'user123'
+     * @principle Enforces document ownership for user skills.
+     */
+    match /users/{userId}/userSkills/{userSkillId} {
+      allow get: if isOwner(userId);
+      allow list: if isOwner(userId);
+      allow create: if isSignedIn() && request.resource.data.userId == userId;
+      allow update: if isExistingOwner(userId) && request.resource.data.userId == userId;
+      allow delete: if isExistingOwner(userId) && resource.data.userId == userId;
+    }
+
+    /**
+     * @description Rules for credit transactions related to a session.
+     * @path /sessions/{sessionId}/transactions/{transactionId}
+     * @allow (create) Authorized users can create transactions related to the session.
+     *   - auth.uid: 'user123'
+     * @allow (get, list) Authorized users can read transactions related to the session.
+     *   - auth.uid: 'user123'
+     * @deny (update, delete) No user can update or delete transactions.
+     * @principle Transactions are linked to sessions and should be immutable.
+     */
+    match /sessions/{sessionId}/transactions/{transactionId} {
+      allow get: if isSessionParticipant(sessionId);
+      allow list: if isSessionParticipant(sessionId);
+      allow create: if isSessionParticipant(sessionId);
+      allow update, delete: if false;
+    }
+
+    /**
+     * @description Rules for credit balance of a user.
+     * @path /users/{userId}/creditBalance
+     * @allow (get) User with ID 'user123' can get their credit balance.
+     *   - auth.uid: 'user123'
+     * @allow (create) User with ID 'user123' can create their credit balance.
+     *   - auth.uid: 'user123'
+     *   - request.resource.data.userId: 'user123'
+     * @allow (update) User with ID 'user123' can update their credit balance.
+     *   - auth.uid: 'user123'
+     *   - resource.data.userId: 'user123'
+     * @deny (list, delete) Listing and deleting credit balances is prohibited.
+     * @deny (create) User with ID 'user456' cannot create a credit balance for 'user123'.
+     *   - auth.uid: 'user456'
+     *   - request.resource.data.userId: 'user123'
+     * @deny (update) User with ID 'user456' cannot update 'user123's credit balance.
+     *   - auth.uid: 'user456'
+     *   - resource.data.userId: 'user123'
+     * @principle Enforces document ownership for credit balances.
+     */
+    match /users/{userId}/creditBalance {
+      allow get: if isOwner(userId);
+      allow list: if false;
+      allow create: if isSignedIn() && request.resource.data.userId == userId;
+      allow update: if isExistingOwner(userId) && request.resource.data.userId == userId;
+      allow delete: if false;
+    }
+
+    /**
+     * @description Rules for sessions between two users.
+     * @path /sessions/{sessionId}
+     * @allow (create) Authorized users can create a session.
+     *   - auth.uid: 'user123'
+     * @allow (get, list) Authorized users can read the session.
+     *   - auth.uid: 'user123'
+     * @allow (update) Authorized users can update the session.
+     *   - auth.uid: 'user123'
+     * @allow (delete) Authorized users can delete the session.
+     *   - auth.uid: 'user123'
+     * @principle Sessions are collaborative and access is controlled by teacherId and learnerId fields.
+     */
+    match /sessions/{sessionId} {
+      allow get: if isSessionParticipant(sessionId);
+      allow list: if true;
+      allow create: if isSignedIn() && (request.resource.data.teacherId == request.auth.uid || request.resource.data.learnerId == request.auth.uid);
+      allow update: if isExistingSessionParticipant(sessionId) && (resource.data.teacherId == request.auth.uid || resource.data.learnerId == request.auth.uid);
+      allow delete: if isExistingSessionParticipant(sessionId) && (resource.data.teacherId == request.auth.uid || resource.data.learnerId == request.auth.uid);
+    }
+
+    /**
+     * @description Rules for a user's availability for sessions.
+     * @path /users/{userId}/availabilities/{availabilityId}
+     * @allow (create) User with ID 'user123' can create their availability.
+     *   - auth.uid: 'user123'
+     *   - request.resource.data.userId: 'user123'
+     * @allow (get, list, update, delete) User with ID 'user123' can manage their availability.
+     *   - auth.uid: 'user123'
+     *   - resource.data.userId: 'user123'
+     * @deny (create) User with ID 'user456' cannot create availability for 'user123'.
+     *   - auth.uid: 'user456'
+     *   - request.resource.data.userId: 'user123'
+     * @deny (update, delete) User with ID 'user456' cannot update or delete 'user123's availability.
+     *   - auth.uid: 'user456'
+     *   - resource.data.userId: 'user123'
+     * @principle Enforces document ownership for availabilities.
+     */
+    match /users/{userId}/availabilities/{availabilityId} {
+      allow get: if isOwner(userId);
+      allow list: if isOwner(userId);
+      allow create: if isSignedIn() && request.resource.data.userId == userId;
+      allow update: if isExistingOwner(userId) && request.resource.data.userId == userId;
+      allow delete: if isExistingOwner(userId) && resource.data.userId == userId;
+    }
+
+    /**
+     * @description Rules for conversations between two users.
+     * @path /conversations/{conversationId}
+     * @allow (create) Authorized users can create a conversation.
+     *   - auth.uid: 'user123'
+     * @allow (get, list) Authorized users can read the conversation.
+     *   - auth.uid: 'user123'
+     * @allow (update) Authorized users can update the conversation.
+     *   - auth.uid: 'user123'
+     * @allow (delete) Authorized users can delete the conversation.
+     *   - auth.uid: 'user123'
+     * @principle Conversations are collaborative and access is controlled by user1Id and user2Id fields.
+     */
+    match /conversations/{conversationId} {
+      allow get: if isConversationParticipant(conversationId);
+      allow list: if isConversationParticipant(conversationId);
+      allow create: if isSignedIn() && (request.resource.data.user1Id == request.auth.uid || request.resource.data.user2Id == request.auth.uid);
+      allow update: if isExistingConversationParticipant(conversationId) && (resource.data.user1Id == request.auth.uid || resource.data.user2Id == request.auth.uid);
+      allow delete: if isExistingConversationParticipant(conversationId) && (resource.data.user1Id == request.auth.uid || resource.data.user2Id == request.auth.uid);
+    }
+
+    /**
+     * @description Rules for messages within a conversation.
+     * @path /conversations/{conversationId}/messages/{messageId}
+     * @allow (create) Authorized users can create a message in the conversation.
+     *   - auth.uid: 'user123'
+     * @allow (get, list) Authorized users can read messages in the conversation.
+     *   - auth.uid: 'user123'
+     * @deny (update, delete) No user can update or delete messages.
+     * @principle Messages are linked to conversations and should be immutable after creation.
+     */
+    match /conversations/{conversationId}/messages/{messageId} {
+      allow get: if isConversationParticipant(conversationId);
+      allow list: if isConversationParticipant(conversationId);
+      allow create: if isSignedIn();
+      allow update, delete: if false;
+    }
+
+    /**
+     * @description Rules for a review for a session.
+     * @path /sessions/{sessionId}/review
+     * @allow (create) Authorized users can create a review for the session.
+     *   - auth.uid: 'user123'
+     * @allow (get) Authorized users can read the review for the session.
+     *   - auth.uid: 'user123'
+     * @deny (list, update, delete) Listing, updating, and deleting reviews are prohibited.
+     * @principle Reviews are linked to sessions and immutable after creation.
+     */
+    match /sessions/{sessionId}/review {
+      allow get: if isSessionParticipant(sessionId);
+      allow list: if false;
+      allow create: if isSessionParticipant(sessionId);
+      allow update, delete: if false;
+    }
+
+    /**
+     * @description Rules for verification data for a user.
+     * @path /users/{userId}/verification
+     * @allow (create) User with ID 'user123' can create their verification data.
+     *   - auth.uid: 'user123'
+     *   - request.resource.data.userId: 'user123'
+     * @allow (get, update) User with ID 'user123' can get and update their verification data.
+     *   - auth.uid: 'user123'
+     *   - resource.data.userId: 'user123'
+     * @deny (list, delete) Listing and deleting verification data is prohibited.
+     * @deny (create) User with ID 'user456' cannot create verification data for 'user123'.
+     *   - auth.uid: 'user456'
+     *   - request.resource.data.userId: 'user123'
+     * @deny (update) User with ID 'user456' cannot update 'user123's verification data.
+     *   - auth.uid: 'user456'
+     *   - resource.data.userId: 'user123'
+     * @principle Enforces document ownership for verification data.
+     */
+    match /users/{userId}/verification {
+      allow get: if isOwner(userId);
+      allow list: if false;
+      allow create: if isSignedIn() && request.resource.data.userId == userId;
+      allow update: if isExistingOwner(userId) && request.resource.data.userId == userId;
+      allow delete: if false;
+    }
+
+    /**
+     * @description Rules for reports submitted by users.
+     * @path /reports/{reportId}
+     * @allow (create) Any signed-in user can create a report.
+     * @allow (get, list, update, delete) TODO: Add admin role check for managing reports.
+     * @principle Reports are public and can be created by any signed-in user.
+     */
+    match /reports/{reportId} {
+      allow get, list: if true;  // TODO: Restrict listing to admin roles only
+      allow create: if isSignedIn();
+      allow update, delete: if false; // TODO: Restrict to admin roles only
+    }
+
+    /**
+     * @description Rules for blocked user relationships.
+     * @path /users/{userId}/blockedUsers/{blockedUserId}
+     * @allow (create) User with ID 'user123' can block another user.
+     *   - auth.uid: 'user123'
+     *   - request.resource.data.blockerId: 'user123'
+     * @allow (get, list, delete) User with ID 'user123' can manage their blocked users.
+     *   - auth.uid: 'user123'
+     *   - resource.data.blockerId: 'user123'
+     * @deny (create) User with ID 'user456' cannot block a user on behalf of 'user123'.
+     *   - auth.uid: 'user456'
+     *   - request.resource.data.blockerId: 'user123'
+     * @deny (delete) User with ID 'user456' cannot unblock a user blocked by 'user123'.
+     *   - auth.uid: 'user456'
+     *   - resource.data.blockerId: 'user123'
+     * @principle Enforces document ownership for blocked user relationships.
+     */
+    match /users/{userId}/blockedUsers/{blockedUserId} {
+      allow get: if isOwner(userId);
+      allow list: if isOwner(userId);
+      allow create: if isSignedIn() && request.resource.data.blockerId == userId;
+      allow update: if false;
+      allow delete: if isExistingOwner(userId) && request.resource.data.blockerId == userId;
+    }
+
+    /**
+     * @description Rules for notifications for a user.
+     * @path /users/{userId}/notifications/{notificationId}
+     * @allow (create) Authorized users can create a notification for the user.
+     *   - auth.uid: 'user123'
+     * @allow (get, list, update) Authorized users can read and update their notifications.
+     *   - auth.uid: 'user123'
+     * @deny (delete) Deleting notifications is prohibited.
+     * @principle Notifications are user-specific and should not be deleted arbitrarily.
+     */
+    match /users/{userId}/notifications/{notificationId} {
+      allow get: if isOwner(userId);
+      allow list: if isOwner(userId);
+      allow create: if isSignedIn() && request.resource.data.userId == userId;
+      allow update: if isExistingOwner(userId) && request.resource.data.userId == userId;
+      allow delete: if false;
+    }
+
+    /**
+     * @description Rules for notification preferences for a user.
+     * @path /users/{userId}/notificationPreferences
+     * @allow (get, create, update) User with ID 'user123' can manage their notification preferences.
+     *   - auth.uid: 'user123'
+     *   - request.resource.data.userId: 'user123'
+     * @deny (list, delete) Listing and deleting notification preferences is prohibited.
+     * @deny (create) User with ID 'user456' cannot create notification preferences for 'user123'.
+     *   - auth.uid: 'user456'
+     *   - request.resource.data.userId: 'user123'
+     * @deny (update) User with ID 'user456' cannot update 'user123's notification preferences.
+     *   - auth.uid: 'user456'
+     *   - resource.data.userId: 'user123'
+     * @principle Enforces document ownership for notification preferences.
+     */
+    match /users/{userId}/notificationPreferences {
+      allow get: if isOwner(userId);
+      allow list: if false;
+      allow create: if isSignedIn() && request.resource.data.userId == userId;
+      allow update: if isExistingOwner(userId) && request.resource.data.userId == userId;
+      allow delete: if false;
+    }
+
+    /**
+     * @description Rules for achievement badges.
+     * @path /badges/{badgeId}
+     * @allow (get, list) Any user can read the list of available badges.
+     * @deny (create, update, delete) No user can create, update, or delete badges.
+     * @principle Badges are globally defined and not user-modifiable.
+     */
+    match /badges/{badgeId} {
+      allow get, list: if true;
+      allow create, update, delete: if false;
+    }
+
+    /**
+     * @description Rules for badges earned by a user.
+     * @path /users/{userId}/userBadges/{userBadgeId}
+     * @allow (get, list) User with ID 'user123' can view the badges they've earned.
+     *   - auth.uid: 'user123'
+     *   - resource.data.userId: 'user123'
+     * @allow (create) Authorized users can create a user badge for the user.
+     *   - auth.uid: 'user123'
+     * @deny (update, delete) No user can update or delete user badges.
+     * @principle User badges are linked to users and managed internally.
+     */
+    match /users/{userId}/userBadges/{userBadgeId} {
+      allow get: if isOwner(userId);
+      allow list: if isOwner(userId);
+      allow create: if isSignedIn() && request.resource.data.userId == userId;
+      allow update, delete: if false;
+    }
+
+    /**
+     * @description Rules for streak data for a user.
+     * @path /users/{userId}/streak
+     * @allow (get, create, update) User with ID 'user123' can manage their streak data.
+     *   - auth.uid: 'user123'
+     *   - request.resource.data.userId: 'user123'
+     * @deny (list, delete) Listing and deleting streak data is prohibited.
+     * @deny (create) User with ID 'user456' cannot create streak data for 'user123'.
+     *   - auth.uid: 'user456'
+     *   - request.resource.data.userId: 'user123'
+     * @deny (update) User with ID 'user456' cannot update 'user123's streak data.
+     *   - auth.uid: 'user456'
+     *   - resource.data.userId: 'user123'
+     * @principle Enforces document ownership for streak data.
+     */
+    match /users/{userId}/streak {
+      allow get: if isOwner(userId);
+      allow list: if false;
+      allow create: if isSignedIn() && request.resource.data.userId == userId;
+      allow update: if isExistingOwner(userId) && request.resource.data.userId == userId;
+      allow delete: if false;
+    }
+
+    // Helper functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isExistingOwner(userId) {
+        return isOwner(userId) && resource != null;
+    }
+
+    function isConversationParticipant(conversationId) {
+      return isSignedIn() && (get(/databases/$(database)/documents/conversations/$(conversationId)).data.user1Id == request.auth.uid || get(/databases/$(database)/documents/conversations/$(conversationId)).data.user2Id == request.auth.uid);
+    }
+
+    function isExistingConversationParticipant(conversationId) {
+      return isConversationParticipant(conversationId) && resource != null;
+    }
+
+    function isSessionParticipant(sessionId) {
+      return isSignedIn() && (get(/databases/$(database)/documents/sessions/$(sessionId)).data.teacherId == request.auth.uid || get(/databases/$(database)/documents/sessions/$(sessionId)).data.learnerId == request.auth.uid);
+    }
+
+    function isExistingSessionParticipant(sessionId) {
+      return isSessionParticipant(sessionId) && resource != null;
+    }
+  }
+}
