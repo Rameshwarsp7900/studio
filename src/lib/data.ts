@@ -1,4 +1,5 @@
 
+
 export type Skill = {
   name: string;
   level: 'Beginner' | 'Intermediate' | 'Expert';
@@ -39,3 +40,10 @@ export type Conversation = {
   lastMessage: string;
   lastMessageAt: Date;
 };
+
+export type Message = {
+    id: string;
+    senderId: string;
+    text: string;
+    createdAt: any; // Can be Date or Firebase Timestamp
+}

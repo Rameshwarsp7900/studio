@@ -53,9 +53,9 @@ export default function MessagesPage() {
   }
 
   return (
-    <div>
+    <div className="h-full flex flex-col">
       <h1 className="text-2xl md:text-3xl font-headline font-bold tracking-tight">Messages</h1>
-      <Card className="mt-6">
+      <Card className="mt-6 flex-1">
         <CardHeader>
           <CardTitle>Your Conversations</CardTitle>
           <CardDescription>Select a conversation to view messages.</CardDescription>
@@ -76,7 +76,7 @@ export default function MessagesPage() {
           )}
           {error && <p className="text-destructive">Error loading conversations. Please check security rules.</p>}
           {!isLoading && displayConversations && displayConversations.length > 0 && (
-             <div className="space-y-2">
+             <div className="space-y-1">
                 {displayConversations.map((convo) => {
                     const currentUserId = user ? user.uid : 'current-user-placeholder';
                     const otherUser = getOtherUser(convo, currentUserId, displayUsers);
@@ -84,7 +84,7 @@ export default function MessagesPage() {
                     const lastMessageDate = convo.lastMessageAt?.toDate ? convo.lastMessageAt.toDate() : new Date(convo.lastMessageAt);
 
                     return (
-                        <Link href="#" key={convo.id} className="block hover:bg-accent rounded-lg p-3">
+                        <Link href={`/messages/${convo.id}`} key={convo.id} className="block hover:bg-accent rounded-lg p-3 -m-3">
                             <div className="flex items-center gap-4">
                                 <Avatar className="h-12 w-12">
                                     {avatar && <AvatarImage src={avatar.imageUrl} alt="User avatar" />}
