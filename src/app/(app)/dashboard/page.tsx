@@ -51,11 +51,6 @@ export default function DashboardPage() {
     <>
        <DashboardHeader onSearchChange={setSearchQuery} />
       <div className="p-4 sm:p-6 lg:p-8 space-y-6">
-        <div>
-          <h1 className="text-2xl md:text-3xl font-headline font-bold tracking-tight">Welcome back!</h1>
-          <p className="text-muted-foreground">Here are some people we think you'll vibe with.</p>
-        </div>
-
         {isLoading ? (
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                 {[...Array(8)].map((_, i) => (
