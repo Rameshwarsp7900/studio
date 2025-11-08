@@ -3,11 +3,12 @@
 import { UserCard } from '@/components/user-card';
 import { getSkillRecommendations } from '@/ai/flows/skill-recommendations';
 import { useFirestore, useCollection, useMemoFirebase, useUser } from '@/firebase';
-import { collection, doc } from 'firebase/firestore';
+import { collection } from 'firebase/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
 import { UserProfileDialog } from '@/components/user-profile-dialog';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import type { User as UserData } from '@/lib/data';
+import { sampleUsers } from '@/lib/sample-data';
 
 export default function DashboardPage() {
   const { user: currentUser } = useUser();
@@ -41,6 +42,10 @@ export default function DashboardPage() {
   // Filter out the current user from the list
   const otherUsers = users?.filter(u => u.id !== currentUser?.uid);
 
+  // If there are no other users, show the sample users.
+  const displayUsers = (!isLoading && otherUsers && otherUsers.length > 0) ? otherUsers : sampleUsers.filter(u => u.id !== currentUser?.uid);
+
+
   return (
     <>
       <div className="space-y-6">
@@ -61,7 +66,7 @@ export default function DashboardPage() {
             </div>
         ) : (
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                {otherUsers?.map((user) => (
+                {displayUsers.map((user) => (
                     <UserCard key={user.id} user={user} onClick={() => handleUserCardClick(user)} />
                 ))}
             </div>
