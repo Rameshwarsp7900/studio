@@ -38,9 +38,13 @@ export default function DashboardPage() {
   // This ensures the page is populated for new users.
   const displayUsers = (!isLoading && otherUsers && otherUsers.length > 0) ? otherUsers : sampleUsers.filter(u => u.id !== 'current-user-placeholder');
 
-  const filteredUsers = displayUsers.filter(user =>
-    user.fullName.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredUsers = displayUsers.filter(user => {
+    const query = searchQuery.toLowerCase();
+    const nameMatch = user.fullName.toLowerCase().includes(query);
+    const offeredSkillMatch = user.skillsOffered?.some(skill => skill.name.toLowerCase().includes(query));
+    const soughtSkillMatch = user.skillsSought?.some(skill => skill.name.toLowerCase().includes(query));
+    return nameMatch || offeredSkillMatch || soughtSkillMatch;
+  });
 
 
   return (
