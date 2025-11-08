@@ -20,6 +20,24 @@ import { setDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import { useToast } from "@/hooks/use-toast";
 import type { Skill } from '@/lib/data';
 
+const sampleSkills = [
+    { name: 'Photography', level: 'Intermediate' },
+    { name: 'Yoga', level: 'Beginner' },
+    { name: 'Cooking', level: 'Expert' },
+    { name: 'Guitar', level: 'Beginner' },
+    { name: 'Graphic Design', level: 'Intermediate' },
+    { name: 'Gardening', level: 'Expert' },
+    { name: 'Spanish', level: 'Beginner' },
+    { name: 'Creative Writing', level: 'Intermediate' },
+    { name: 'Web Development', level: 'Expert' },
+];
+
+const getRandomItems = <T>(arr: T[], num: number): T[] => {
+    const shuffled = [...arr].sort(() => 0.5 - Math.random());
+    return shuffled.slice(0, num);
+};
+
+
 export default function SignupPage() {
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
@@ -35,27 +53,29 @@ export default function SignupPage() {
     if (!isUserLoading && user && isCreatingProfile && firestore) {
         const userDocRef = doc(firestore, "users", user.uid);
         
-        // Mock data for skills
-        const skillsOffered: Skill[] = [{ name: 'JavaScript', level: 'Intermediate' }];
-        const skillsSought: Skill[] = [{ name: 'Python', level: 'Beginner' }];
+        const skillsOffered = getRandomItems(sampleSkills, Math.floor(Math.random() * 2) + 1);
+        const skillsSought = getRandomItems(
+            sampleSkills.filter(s => !skillsOffered.includes(s)), 
+            Math.floor(Math.random() * 2) + 1
+        );
 
         const userData = {
-        id: user.uid,
-        email: user.email,
-        fullName: fullName,
-        bio: `A new member of the SkillSwap community, excited to learn and share!`,
-        profilePictureUrlId: `user-${Math.ceil(Math.random() * 12)}`,
-        locationCity: "New York",
-        locationCountry: "USA",
-        latitude: 40.7128,
-        longitude: -74.0060,
-        skillsOffered,
-        skillsSought,
-        verificationStatus: "unverified",
-        trustScore: 50,
-        creditsBalance: 10, // Start with 10 credits
-        createdAt: new Date().toISOString(),
-        isAdmin: false, // Default to not an admin
+            id: user.uid,
+            email: user.email,
+            fullName: fullName,
+            bio: `A new member of the SkillSwap community, excited to learn from others and share my own knowledge.`,
+            profilePictureUrlId: `user-${Math.ceil(Math.random() * 12)}`,
+            locationCity: "New York",
+            locationCountry: "USA",
+            latitude: 40.7128,
+            longitude: -74.0060,
+            skillsOffered,
+            skillsSought,
+            verificationStatus: "unverified",
+            trustScore: 50 + Math.floor(Math.random() * 40), // 50-89
+            creditsBalance: 10, // Start with 10 credits
+            createdAt: new Date().toISOString(),
+            isAdmin: false, // Default to not an admin
         };
         setDocumentNonBlocking(userDocRef, userData, { merge: true });
         
