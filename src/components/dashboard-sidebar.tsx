@@ -64,6 +64,7 @@ export function DashboardSidebar() {
   const userAvatar = PlaceHolderImages.find(p => p.id === 'user-1');
   
   const handleLogout = async () => {
+    if (!auth) return;
     await signOut(auth);
     router.push('/login');
   };
@@ -108,7 +109,7 @@ export function DashboardSidebar() {
       <SidebarFooter>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="w-full justify-start p-2 h-auto">
+            <Button variant="ghost" className="w-full justify-start p-2 h-auto text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground">
               <div className="flex items-center gap-3">
                 <Avatar className="h-8 w-8">
                   {userAvatar && <AvatarImage src={userAvatar.imageUrl} alt="User avatar" />}
