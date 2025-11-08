@@ -8,11 +8,13 @@ import { UserProfileDialog } from '@/components/user-profile-dialog';
 import { useState } from 'react';
 import type { User as UserData } from '@/lib/data';
 import { sampleUsers } from '@/lib/sample-data';
+import { DashboardHeader } from '@/components/dashboard-header';
 
 export default function DashboardPage() {
   const { user: currentUser } = useUser();
   const firestore = useFirestore();
   const [selectedUser, setSelectedUser] = useState<UserData | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
 
   const usersCollectionRef = useMemoFirebase(() => {
     if (!firestore) return null;
@@ -36,10 +38,15 @@ export default function DashboardPage() {
   // This ensures the page is populated for new users.
   const displayUsers = (!isLoading && otherUsers && otherUsers.length > 0) ? otherUsers : sampleUsers.filter(u => u.id !== 'current-user-placeholder');
 
+  const filteredUsers = displayUsers.filter(user =>
+    user.fullName.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
 
   return (
     <>
-      <div className="space-y-6">
+       <DashboardHeader onSearchChange={setSearchQuery} />
+      <div className="p-4 sm:p-6 lg:p-8 space-y-6">
         <div>
           <h1 className="text-2xl md:text-3xl font-headline font-bold tracking-tight">Welcome back!</h1>
           <p className="text-muted-foreground">Here are some people we think you'll vibe with.</p>
@@ -54,8 +61,8 @@ export default function DashboardPage() {
                 ))}
             </div>
         ) : (
-            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                {displayUsers.map((user) => (
+            <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                {filteredUsers.map((user) => (
                     <UserCard key={user.id} user={user} onClick={() => handleUserCardClick(user)} />
                 ))}
             </div>
