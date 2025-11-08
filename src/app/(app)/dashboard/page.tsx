@@ -1,7 +1,6 @@
 'use client';
 
 import { UserCard } from '@/components/user-card';
-import { getSkillRecommendations } from '@/ai/flows/skill-recommendations';
 import { useFirestore, useCollection, useMemoFirebase, useUser } from '@/firebase';
 import { collection } from 'firebase/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -22,15 +21,6 @@ export default function DashboardPage() {
 
   const { data: users, isLoading } = useCollection<UserData>(usersCollectionRef);
 
-  // Example of how to use the GenAI flow.
-  // For this build, we will use static mock data.
-  // const recommendations = await getSkillRecommendations({
-  //   profile: "...",
-  //   skillsOffered: ["React"],
-  //   skillsSought: ["Node.js"],
-  //   location: "San Francisco, CA",
-  // });
-
   const handleUserCardClick = (user: UserData) => {
     setSelectedUser(user);
   }
@@ -42,8 +32,9 @@ export default function DashboardPage() {
   // Filter out the current user from the list
   const otherUsers = users?.filter(u => u.id !== currentUser?.uid);
 
-  // If there are no other users, show the sample users.
-  const displayUsers = (!isLoading && otherUsers && otherUsers.length > 0) ? otherUsers : sampleUsers.filter(u => u.id !== currentUser?.uid);
+  // If there are no other users from Firestore, show the sample users.
+  // This ensures the page is populated for new users.
+  const displayUsers = (!isLoading && otherUsers && otherUsers.length > 0) ? otherUsers : sampleUsers.filter(u => u.id !== 'current-user-placeholder');
 
 
   return (
@@ -57,10 +48,12 @@ export default function DashboardPage() {
         {isLoading ? (
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                 {[...Array(8)].map((_, i) => (
-                    <div key={i} className="space-y-2">
-                        <Skeleton className="h-40 w-full" />
+                    <div key={i} className="flex flex-col space-y-3">
+                      <Skeleton className="h-32 w-full rounded-lg" />
+                      <div className="space-y-2 pt-10">
                         <Skeleton className="h-6 w-3/4" />
                         <Skeleton className="h-4 w-1/2" />
+                      </div>
                     </div>
                 ))}
             </div>

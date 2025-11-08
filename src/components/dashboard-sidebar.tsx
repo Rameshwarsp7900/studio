@@ -33,8 +33,10 @@ import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { Button } from './ui/button';
 import { Logo } from './logo';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
-import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
+import { useUser, useFirestore, useDoc, useMemoFirebase, useAuth } from '@/firebase';
 import { doc } from 'firebase/firestore';
+import { signOut } from 'firebase/auth';
+import { useRouter } from 'next/navigation';
 
 const navItems = [
   { href: '/dashboard', icon: Home, label: 'Discover' },
@@ -49,6 +51,8 @@ export function DashboardSidebar() {
   const pathname = usePathname();
   const { user } = useUser();
   const firestore = useFirestore();
+  const auth = useAuth();
+  const router = useRouter();
   
   const userDocRef = useMemoFirebase(() => {
     if (!firestore || !user) return null;
@@ -58,6 +62,11 @@ export function DashboardSidebar() {
   const { data: userProfile } = useDoc(userDocRef);
 
   const userAvatar = PlaceHolderImages.find(p => p.id === 'user-1');
+  
+  const handleLogout = async () => {
+    await signOut(auth);
+    router.push('/login');
+  };
 
   return (
     <Sidebar>
@@ -124,7 +133,7 @@ export function DashboardSidebar() {
               <span>Help & Support</span>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
+            <DropdownMenuItem onClick={handleLogout}>
               <LogOut className="mr-2 h-4 w-4" />
               <span>Log out</span>
             </DropdownMenuItem>

@@ -8,6 +8,7 @@ import { PlaceHolderImages } from '@/lib/placeholder-images';
 import type { User } from '@/lib/data';
 import { Star, MapPin, X, Heart, MessageCircle } from 'lucide-react';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 
 interface UserProfileDialogProps {
   isOpen: boolean;
@@ -18,9 +19,18 @@ interface UserProfileDialogProps {
 const userImages = PlaceHolderImages.filter(p => p.id.startsWith('user-')).slice(0, 4);
 
 export function UserProfileDialog({ isOpen, user, onClose }: UserProfileDialogProps) {
+  const router = useRouter();
+
   if (!user) return null;
 
   const rating = 4.5; // Static for now
+
+  const handleMessageClick = () => {
+    onClose();
+    // In a real app, you would create a new conversation or navigate to an existing one.
+    // For now, we just navigate to the messages page.
+    router.push('/messages');
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -83,7 +93,7 @@ export function UserProfileDialog({ isOpen, user, onClose }: UserProfileDialogPr
             <Button variant="outline" size="icon" className="h-16 w-16 rounded-full bg-white shadow-lg hover:bg-destructive/10" onClick={onClose}>
                 <X className="h-8 w-8 text-destructive" />
             </Button>
-            <Button variant="outline" size="icon" className="h-16 w-16 rounded-full bg-white shadow-lg hover:bg-primary/10">
+            <Button variant="outline" size="icon" className="h-16 w-16 rounded-full bg-white shadow-lg hover:bg-primary/10" onClick={handleMessageClick}>
                 <MessageCircle className="h-8 w-8 text-primary" />
             </Button>
             <Button variant="outline" size="icon" className="h-16 w-16 rounded-full bg-white shadow-lg hover:bg-green-500/10">
