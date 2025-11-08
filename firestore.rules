@@ -1,6 +1,6 @@
 /**
  * @file SkillSwap Firestore Security Rules
- * @version 4
+ * @version 5
  *
  * @description
  * This ruleset enforces a strict user-ownership model for personal data and a shared-access model for collaborative data.
