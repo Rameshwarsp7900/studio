@@ -13,7 +13,11 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useState, useEffect } from 'react';
 import { setDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import { useToast } from '@/hooks/use-toast';
-import { Camera, Edit } from 'lucide-react';
+import { Camera, Edit, Star } from 'lucide-react';
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
+import Image from 'next/image';
+
+const userImages = PlaceHolderImages.filter(p => p.id.startsWith('user-')).slice(0, 4);
 
 export default function ProfilePage() {
   const { user } = useUser();
@@ -92,6 +96,9 @@ export default function ProfilePage() {
     );
   }
 
+  const rating = 4.5; // Static for now
+  const trustScore = userProfile.trustScore || 0;
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-start">
@@ -110,14 +117,19 @@ export default function ProfilePage() {
 
       <Card>
         <CardHeader className="p-0 relative">
-          <div className="relative h-40 w-full bg-muted">
-            {/* Placeholder for cover photo */}
-            {isEditing && (
-              <Button size="icon" variant="outline" className="absolute top-4 right-4 z-10 bg-background/50 hover:bg-background">
-                <Camera className="h-5 w-5" />
-              </Button>
-            )}
-          </div>
+          <Carousel>
+            <CarouselContent>
+              {userImages.map((img, index) => (
+                <CarouselItem key={index}>
+                  <div className="relative h-64 w-full">
+                    <Image src={img.imageUrl} alt={`User image ${index + 1}`} fill className="object-cover" data-ai-hint={img.imageHint} />
+                  </div>
+                </CarouselItem>
+              ))}
+            </CarouselContent>
+            <CarouselPrevious className="absolute left-4 top-1/2 -translate-y-1/2" />
+            <CarouselNext className="absolute right-4 top-1/2 -translate-y-1/2" />
+          </Carousel>
           <div className="absolute -bottom-12 left-6">
               <Avatar className="h-24 w-24 border-4 border-card">
                   {userAvatar && <AvatarImage src={userAvatar.imageUrl} alt="User avatar" />}
@@ -156,6 +168,15 @@ export default function ProfilePage() {
             <>
               <h2 className="text-2xl font-bold font-headline">{userProfile.fullName}</h2>
               <p className="text-muted-foreground">{userProfile.email}</p>
+              <div className="flex items-center gap-4 mt-2">
+                <div className="flex items-center gap-1">
+                    {[...Array(5)].map((_, i) => (
+                        <Star key={i} className={`h-5 w-5 ${i < Math.floor(rating) ? 'text-primary fill-primary' : 'text-muted-foreground'}`} />
+                    ))}
+                    <span className="ml-1 text-muted-foreground text-sm">({rating.toFixed(1)})</span>
+                </div>
+                <Badge variant="outline">Trust Score: {trustScore}%</Badge>
+              </div>
               <p className="mt-4">{userProfile.bio || 'No bio yet. Click "Edit Profile" to add one!'}</p>
               <div className="mt-4 flex items-center gap-2 text-muted-foreground">
                 <span className="font-semibold text-foreground">Location:</span> 

@@ -13,6 +13,7 @@ type UserCardProps = {
 
 export function UserCard({ user }: UserCardProps) {
   const profileImage = PlaceHolderImages.find(p => p.id === user.profilePictureUrlId);
+  const rating = 4.5; // Static for now, can be dynamic later
 
   return (
     <Card className="flex flex-col overflow-hidden transition-all hover:shadow-lg">
@@ -36,13 +37,19 @@ export function UserCard({ user }: UserCardProps) {
         </div>
         <div className="pt-12 px-6 pb-2">
             <h3 className="text-xl font-headline font-bold">{user.name}</h3>
-            <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                <MapPin className="h-3.5 w-3.5" />
-                <span>{user.location}</span>
+            <div className="flex items-center justify-between text-sm text-muted-foreground">
+              <div className="flex items-center gap-1">
+                  <MapPin className="h-3.5 w-3.5" />
+                  <span>{user.location}</span>
+              </div>
+              <div className="flex items-center gap-1">
+                  <Star className="h-4 w-4 text-primary" />
+                  <span>{rating.toFixed(1)}</span>
+              </div>
             </div>
         </div>
       </CardHeader>
-      <CardContent className="flex-1 space-y-4">
+      <CardContent className="flex-1 space-y-4 pt-2">
         <div>
           <h4 className="text-sm font-semibold mb-2 text-primary">OFFERING</h4>
           <div className="flex flex-wrap gap-1.5">

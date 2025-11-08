@@ -1,6 +1,6 @@
 /**
  * @file SkillSwap Firestore Security Rules
- * @version 3
+ * @version 4
  *
  * @description
  * This ruleset enforces a strict user-ownership model for personal data and a shared-access model for collaborative data.
@@ -13,7 +13,7 @@
  * - Users can only access their own data under `/users/{userId}`.
  * - Admins can read all user profiles and update `creditsBalance`.
  * - Listing of users is allowed for admins only.
- * - Conversations and Sessions use denormalized fields for direct authorization.
+ * - Conversations and Sessions use denormalized fields and collection group queries for secure access.
  */
 rules_version = '2';
 service cloud.firestore {
@@ -55,8 +55,8 @@ service cloud.firestore {
      * @description Rules for credit transactions related to a session.
      */
     match /sessions/{sessionId}/transactions/{transactionId} {
-      allow get, list: if isSessionParticipant(sessionId) || isAdmin();
-      allow create: if isSessionParticipant(sessionId);
+      allow get, list: if canAccessSession(sessionId) || isAdmin();
+      allow create: if canAccessSession(sessionId);
       allow update, delete: if false;
     }
 
@@ -72,13 +72,16 @@ service cloud.firestore {
     }
 
     /**
-     * @description Rules for sessions between two users.
+     * @description Rules for sessions collection.
+     * Users can query for sessions where they are either the teacher or the learner.
+     * Direct get/list on the whole collection is restricted.
      */
     match /sessions/{sessionId} {
-      allow get, list: if isSessionParticipant(sessionId) || isAdmin();
+      allow get: if canAccessSession(sessionId) || isAdmin();
+      allow list: if (isSignedIn() && (query.get('teacherId') == request.auth.uid || query.get('learnerId') == request.auth.uid)) || isAdmin();
       allow create: if isSignedIn() && (request.resource.data.teacherId == request.auth.uid || request.resource.data.learnerId == request.auth.uid);
-      allow update: if isExistingSessionParticipant(sessionId);
-      allow delete: if isExistingSessionParticipant(sessionId);
+      allow update: if canAccessSession(get(/databases/$(database)/documents/sessions/$(sessionId)).data);
+      allow delete: if canAccessSession(get(/databases/$(database)/documents/sessions/$(sessionId)).data);
     }
 
     /**
@@ -95,18 +98,18 @@ service cloud.firestore {
      * @description Rules for conversations between two users.
      */
     match /conversations/{conversationId} {
-      allow get, list: if isConversationParticipant(conversationId) || isAdmin();
+      allow get, list: if canAccessConversation(conversationId) || isAdmin();
       allow create: if isSignedIn() && (request.resource.data.user1Id == request.auth.uid || request.resource.data.user2Id == request.auth.uid);
-      allow update: if isExistingConversationParticipant(conversationId);
-      allow delete: if isExistingConversationParticipant(conversationId);
+      allow update: if canAccessConversation(get(/databases/$(database)/documents/conversations/$(conversationId)).data);
+      allow delete: if canAccessConversation(get(/databases/$(database)/documents/conversations/$(conversationId)).data);
     }
 
     /**
      * @description Rules for messages within a conversation.
      */
     match /conversations/{conversationId}/messages/{messageId} {
-      allow get, list: if isConversationParticipant(conversationId) || isAdmin();
-      allow create: if isConversationParticipant(conversationId);
+      allow get, list: if canAccessConversation(conversationId) || isAdmin();
+      allow create: if canAccessConversation(conversationId);
       allow update, delete: if false;
     }
 
@@ -114,9 +117,9 @@ service cloud.firestore {
      * @description Rules for a review for a session.
      */
     match /sessions/{sessionId}/review {
-      allow get: if isSessionParticipant(sessionId) || isAdmin();
+      allow get: if canAccessSession(sessionId) || isAdmin();
       allow list: if false;
-      allow create: if isSessionParticipant(sessionId);
+      allow create: if canAccessSession(sessionId);
       allow update, delete: if false;
     }
 
@@ -220,22 +223,14 @@ service cloud.firestore {
       return request.resource.data;
     }
 
-    function isConversationParticipant(conversationId) {
+    function canAccessConversation(conversationId) {
       let conversationDoc = get(/databases/$(database)/documents/conversations/$(conversationId)).data;
       return isSignedIn() && (conversationDoc.user1Id == request.auth.uid || conversationDoc.user2Id == request.auth.uid);
     }
 
-    function isExistingConversationParticipant(conversationId) {
-      return isConversationParticipant(conversationId) && resource != null;
-    }
-
-    function isSessionParticipant(sessionId) {
+    function canAccessSession(sessionId) {
       let sessionDoc = get(/databases/$(database)/documents/sessions/$(sessionId)).data;
       return isSignedIn() && (sessionDoc.teacherId == request.auth.uid || sessionDoc.learnerId == request.auth.uid);
-    }
-
-    function isExistingSessionParticipant(sessionId) {
-      return isSessionParticipant(sessionId) && resource != null;
     }
   }
 }
