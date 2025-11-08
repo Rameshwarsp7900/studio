@@ -102,32 +102,22 @@ export default function SessionsPage() {
   const { user } = useUser();
   const firestore = useFirestore();
 
-  const sessionsAsTeacherQuery = useMemoFirebase(() => {
+  const sessionsQuery = useMemoFirebase(() => {
     if (!firestore || !user) return null;
     return query(
       collection(firestore, 'sessions'),
-      where('teacherId', '==', user.uid)
+      where('memberIds', 'array-contains', user.uid)
     );
   }, [firestore, user]);
 
-  const sessionsAsLearnerQuery = useMemoFirebase(() => {
-    if (!firestore || !user) return null;
-    return query(
-      collection(firestore, 'sessions'),
-      where('learnerId', '==', user.uid)
-    );
-  }, [firestore, user]);
-
-  const { data: teachingSessions, isLoading: isTeacherLoading } = useCollection(sessionsAsTeacherQuery);
-  const { data: learningSessions, isLoading: isLearnerLoading } = useCollection(sessionsAsLearnerQuery);
-
-  const allSessions = [...(teachingSessions || []), ...(learningSessions || [])]
-    .filter((session, index, self) => index === self.findIndex(s => s.id === session.id)) // remove duplicates
+  const { data: allSessions, isLoading } = useCollection(sessionsQuery);
+  
+  const upcomingSessions = (allSessions || [])
+    .filter(s => s.status !== 'completed' && s.status !== 'cancelled')
+    .sort((a, b) => (a.scheduledAt?.toDate ? a.scheduledAt.toDate() : new Date(a.scheduledAt)) - (b.scheduledAt?.toDate ? b.scheduledAt.toDate() : new Date(b.scheduledAt)));
+  const pastSessions = (allSessions || [])
+    .filter(s => s.status === 'completed' || s.status === 'cancelled')
     .sort((a, b) => (b.scheduledAt?.toDate ? b.scheduledAt.toDate() : new Date(b.scheduledAt)) - (a.scheduledAt?.toDate ? a.scheduledAt.toDate() : new Date(a.scheduledAt)));
-
-  const upcomingSessions = allSessions.filter(s => s.status !== 'completed' && s.status !== 'cancelled');
-  const pastSessions = allSessions.filter(s => s.status === 'completed' || s.status === 'cancelled');
-  const isLoading = isTeacherLoading || isLearnerLoading;
 
   return (
     <div>

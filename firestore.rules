@@ -1,6 +1,6 @@
 /**
  * @file SkillSwap Firestore Security Rules
- * @version 5
+ * @version 6
  *
  * @description
  * This ruleset enforces a strict user-ownership model for personal data and a shared-access model for collaborative data.
@@ -78,8 +78,8 @@ service cloud.firestore {
      */
     match /sessions/{sessionId} {
       allow get: if canAccessSession(sessionId) || isAdmin();
-      allow list: if (isSignedIn() && (query.get('teacherId') == request.auth.uid || query.get('learnerId') == request.auth.uid)) || isAdmin();
-      allow create: if isSignedIn() && (request.resource.data.teacherId == request.auth.uid || request.resource.data.learnerId == request.auth.uid);
+      allow list: if (isSignedIn() && request.auth.uid in resource.data.memberIds) || isAdmin();
+      allow create: if isSignedIn() && request.auth.uid in request.resource.data.memberIds;
       allow update: if canAccessSession(get(/databases/$(database)/documents/sessions/$(sessionId)).data);
       allow delete: if canAccessSession(get(/databases/$(database)/documents/sessions/$(sessionId)).data);
     }
@@ -230,7 +230,7 @@ service cloud.firestore {
 
     function canAccessSession(sessionId) {
       let sessionDoc = get(/databases/$(database)/documents/sessions/$(sessionId)).data;
-      return isSignedIn() && (sessionDoc.teacherId == request.auth.uid || sessionDoc.learnerId == request.auth.uid);
+      return isSignedIn() && (request.auth.uid in sessionDoc.memberIds);
     }
   }
 }
