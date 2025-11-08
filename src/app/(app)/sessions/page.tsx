@@ -2,7 +2,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
-import { collection, query, where } from 'firebase/firestore';
+import { collection, query, where, doc, increment } from 'firebase/firestore';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -10,15 +10,46 @@ import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { Skeleton } from '@/components/ui/skeleton';
 import { users as mockUsers } from '@/lib/data';
 import { CalendarDays, Video } from "lucide-react";
+import { updateDocumentNonBlocking } from "@/firebase/non-blocking-updates";
+import { useToast } from "@/hooks/use-toast";
 
 function SessionCard({ session }: { session: any }) {
     const { user } = useUser();
+    const firestore = useFirestore();
+    const { toast } = useToast();
     const isTeacher = session.teacherId === user?.uid;
     const otherUserId = isTeacher ? session.learnerId : session.teacherId;
     const otherUser = mockUsers.find(u => u.id === otherUserId);
     const userAvatar = otherUser ? PlaceHolderImages.find(p => p.id === otherUser.profilePictureUrlId) : null;
     
     const sessionDate = session.scheduledAt?.toDate ? session.scheduledAt.toDate() : new Date(session.scheduledAt);
+
+    const handleCompleteSession = () => {
+        if (!firestore || !user) return;
+        
+        const sessionRef = doc(firestore, 'sessions', session.id);
+        const teacherRef = doc(firestore, 'users', session.teacherId);
+        const learnerRef = doc(firestore, 'users', session.learnerId);
+
+        // Mark session as completed
+        updateDocumentNonBlocking(sessionRef, { status: 'completed' });
+
+        // Award 1 credit to the teacher
+        updateDocumentNonBlocking(teacherRef, {
+            creditsBalance: increment(1)
+        });
+
+        // Deduct credits from learner (assuming 1 credit per hour)
+        const creditsToDeduct = session.durationHours || 1;
+        updateDocumentNonBlocking(learnerRef, {
+            creditsBalance: increment(-creditsToDeduct)
+        });
+
+        toast({
+            title: "Session Completed",
+            description: "The session has been marked as complete and credits have been transferred."
+        });
+    };
 
     return (
         <Card>
@@ -48,6 +79,12 @@ function SessionCard({ session }: { session: any }) {
                 </div>
                 <div className="flex flex-col gap-2">
                     <Button size="sm">Details</Button>
+                    {session.status === 'in_progress' && (
+                        <Button size="sm" variant="secondary" onClick={handleCompleteSession}>Complete Session</Button>
+                    )}
+                    {session.status === 'accepted' && (
+                         <Button size="sm" variant="outline">Start Session</Button>
+                    )}
                     {session.status === 'requested' && !isTeacher && <Button size="sm" variant="outline">Cancel</Button>}
                     {session.status === 'requested' && isTeacher && (
                         <>

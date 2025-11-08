@@ -9,6 +9,7 @@ import {
   LogOut,
   MessageSquare,
   Settings,
+  Shield,
   User,
 } from 'lucide-react';
 import {
@@ -32,6 +33,8 @@ import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { Button } from './ui/button';
 import { Logo } from './logo';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
+import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
+import { doc } from 'firebase/firestore';
 
 const navItems = [
   { href: '/dashboard', icon: Home, label: 'Discover' },
@@ -40,8 +43,20 @@ const navItems = [
   { href: '/profile', icon: User, label: 'My Profile' },
 ];
 
+const adminNavItem = { href: '/admin', icon: Shield, label: 'Admin' };
+
 export function DashboardSidebar() {
   const pathname = usePathname();
+  const { user } = useUser();
+  const firestore = useFirestore();
+  
+  const userDocRef = useMemoFirebase(() => {
+    if (!firestore || !user) return null;
+    return doc(firestore, 'users', user.uid);
+  }, [firestore, user]);
+
+  const { data: userProfile } = useDoc(userDocRef);
+
   const userAvatar = PlaceHolderImages.find(p => p.id === 'user-1');
 
   return (
@@ -65,6 +80,20 @@ export function DashboardSidebar() {
               </Link>
             </SidebarMenuItem>
           ))}
+          {userProfile?.isAdmin && (
+            <SidebarMenuItem>
+              <Link href={adminNavItem.href}>
+                <SidebarMenuButton
+                  isActive={pathname === adminNavItem.href}
+                  tooltip={adminNavItem.label}
+                  className="justify-start"
+                >
+                  <adminNavItem.icon className="h-5 w-5" />
+                  <span>{adminNavItem.label}</span>
+                </SidebarMenuButton>
+              </Link>
+            </SidebarMenuItem>
+          )}
         </SidebarMenu>
       </SidebarContent>
       <SidebarFooter>
@@ -74,11 +103,11 @@ export function DashboardSidebar() {
               <div className="flex items-center gap-3">
                 <Avatar className="h-8 w-8">
                   {userAvatar && <AvatarImage src={userAvatar.imageUrl} alt="User avatar" />}
-                  <AvatarFallback>AJ</AvatarFallback>
+                  <AvatarFallback>{userProfile?.fullName?.charAt(0) || 'U'}</AvatarFallback>
                 </Avatar>
                 <div className="text-left hidden group-data-[collapsible=icon]:hidden">
-                  <p className="text-sm font-medium">Alice Johnson</p>
-                  <p className="text-xs text-muted-foreground">alice@example.com</p>
+                  <p className="text-sm font-medium">{userProfile?.fullName || 'User'}</p>
+                  <p className="text-xs text-muted-foreground">{user?.email}</p>
                 </div>
               </div>
             </Button>

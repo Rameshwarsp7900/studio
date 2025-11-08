@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -13,12 +13,11 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useAuth, useFirestore } from '@/firebase';
+import { useAuth, useFirestore, useUser } from '@/firebase';
 import { initiateEmailSignUp } from '@/firebase/non-blocking-login';
 import { doc } from 'firebase/firestore';
 import { setDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import { useToast } from "@/hooks/use-toast";
-import { useUser } from "@/firebase/provider";
 
 export default function SignupPage() {
   const [fullName, setFullName] = useState('');
@@ -29,52 +28,43 @@ export default function SignupPage() {
   const router = useRouter();
   const { toast } = useToast();
   const { user, isUserLoading } = useUser();
+  const [isCreatingProfile, setIsCreatingProfile] = useState(false);
 
-  const handleSignup = async (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
-      const userCredential = await initiateEmailSignUp(auth, email, password);
-      
-      // The user is created in Auth, now create the user profile in Firestore
-      // initiateEmailSignUp doesn't return the userCredential directly in our non-blocking setup.
-      // We rely on the onAuthStateChanged listener to get the user.
-      // A better approach would be to listen for the user object to become available.
-      // For now, we will proceed with a slight delay, but this is not ideal.
-      setTimeout(() => {
-        const currentUser = auth.currentUser;
-        if (currentUser) {
-          const userDocRef = doc(firestore, "users", currentUser.uid);
-          const userData = {
-            id: currentUser.uid,
-            email: currentUser.email,
-            fullName: fullName,
-            locationCity: "",
-            locationCountry: "",
-            latitude: 0,
-            longitude: 0,
-            verificationStatus: "unverified",
-            trustScore: 50,
-            creditsBalance: 1, // Start with 1 credit
-            createdAt: new Date().toISOString(),
-          };
-          setDocumentNonBlocking(userDocRef, userData, { merge: true });
-        }
-      }, 2000); // This delay is a workaround
-
-    } catch (error: any) {
-      toast({
-        variant: "destructive",
-        title: "Signup Failed",
-        description: error.message,
-      });
+  useEffect(() => {
+    if (!isUserLoading && user && isCreatingProfile) {
+        const userDocRef = doc(firestore, "users", user.uid);
+        const userData = {
+        id: user.uid,
+        email: user.email,
+        fullName: fullName,
+        locationCity: "",
+        locationCountry: "",
+        latitude: 0,
+        longitude: 0,
+        verificationStatus: "unverified",
+        trustScore: 50,
+        creditsBalance: 10, // Start with 10 credits
+        createdAt: new Date().toISOString(),
+        isAdmin: false, // Default to not an admin
+        };
+        setDocumentNonBlocking(userDocRef, userData, { merge: true });
+        setIsCreatingProfile(false); // Reset flag
+        router.push('/dashboard');
     }
+  }, [user, isUserLoading, isCreatingProfile, firestore, fullName, router]);
+
+  const handleSignup = (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsCreatingProfile(true);
+    initiateEmailSignUp(auth, email, password);
   };
   
   if (isUserLoading) {
     return <div>Loading...</div>;
   }
 
-  if (user) {
+  // Redirect if user is already logged in and not in the process of signing up.
+  if (user && !isCreatingProfile) {
     router.push('/dashboard');
     return null;
   }
@@ -121,8 +111,8 @@ export default function SignupPage() {
                 onChange={(e) => setPassword(e.target.value)}
               />
             </div>
-            <Button type="submit" className="w-full">
-              Create an account
+            <Button type="submit" className="w-full" disabled={isCreatingProfile}>
+              {isCreatingProfile ? 'Creating Account...' : 'Create an account'}
             </Button>
             <Button variant="outline" className="w-full" disabled>
               Sign up with Google
