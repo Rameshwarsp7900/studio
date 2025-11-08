@@ -15,7 +15,7 @@ import { sampleUsers, sampleConversations } from "@/lib/sample-data";
 
 function getOtherUser(conversation: any, currentUserId: string, users: User[] | null) {
   if (!users) return null;
-  const otherUserId = conversation.user1Id === currentUserId ? conversation.user2Id : conversation.user1Id;
+  const otherUserId = conversation.memberIds.find((id: string) => id !== currentUserId);
   return users.find(u => u.id === otherUserId);
 }
 
@@ -81,6 +81,8 @@ export default function MessagesPage() {
                     const currentUserId = user ? user.uid : 'current-user-placeholder';
                     const otherUser = getOtherUser(convo, currentUserId, displayUsers);
                     const avatar = otherUser ? userAvatars[otherUser.id] : null;
+                    const lastMessageDate = convo.lastMessageAt?.toDate ? convo.lastMessageAt.toDate() : new Date(convo.lastMessageAt);
+
                     return (
                         <Link href="#" key={convo.id} className="block hover:bg-accent rounded-lg p-3">
                             <div className="flex items-center gap-4">
@@ -95,7 +97,7 @@ export default function MessagesPage() {
                                     </p>
                                 </div>
                                 <span className="text-xs text-muted-foreground">
-                                  {convo.lastMessageAt ? new Date(convo.lastMessageAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
+                                  {convo.lastMessageAt ? lastMessageDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
                                 </span>
                             </div>
                         </Link>
